@@ -1,4 +1,8 @@
 from Classes import Purchase
+from MiscMethods import isDate
+from pypdf import PdfReader
+
+PaymentDefinitionConfidence = 1.0
 
 def main():
     purchases = getPurchases(["testPdf"])
@@ -21,11 +25,48 @@ def getPurchases(pdfsArray):
     return purchases
     
 
-def parsePdf(input):
-    return [(15.77, "MERCHANT PAYMENT WM SUPERCENTER # - 230022 1165 SUPERIOR DR SAINT JOHNS MI ON 081325FROM CARD#: XXXXXXXXXXXX677X"), 
-            (24.00, "MERCHANT PAYMENT NNT HUCKLEBERRY - 006633 2900 N. HUBBARDSTON RD. PEWAMO MI ON 081525FROM CARD#: XXXXXXXXXXXX677X"),
-            (48.00, "MERCHANT PAYMENT NNT HUCKLEBERRY - 006633 2900 N. HUBBARDSTON RD. PEWAMO MI ON 081525FROM CARD#: XXXXXXXXXXXX677X")
-            ]
+def parsePdf(inputPDFs):
+    pdfReadersArray = [PdfReader(pdf) for pdf in inputPDFs]
+    pdfContent = []
+
+    for reader in pdfReadersArray:
+        if reader.is_encrypted:
+            reader.decrypt('') # <--- fix
+
+        numPages = PdfReader.get_num_pages(reader)
+
+        for index in range(numPages):
+            page = reader.pages[index]
+
+            pdfContent.append(page.extract_text())
+
+    purchases = pullPurchases(''.join(pdfContent))
+
+
+    for x in purchases:
+        print(f'{x}\n\n')
+
+
+
+def pullPurchases(text: str) -> list:
+    textArray = text.split("\n")
+
+    foundPurchases = [content for content in textArray if isPurchase(content)]
+
+
+    return foundPurchases
+
+def isPurchase(content: str) -> bool:
+    confidence = 0.0
+    keyWords = {'transaction', 'debit', 'withdrawal', 'withdrawals/debits', 'withdrawals/debits-continueddate', 'payments'} # <-- make non static (move to json)
+
+    for word in content.split(" "):
+        if word.lower() in keyWords: confidence += 10.0
+        if isDate(word): confidence += 5.0
+
+    return confidence >= PaymentDefinitionConfidence
+
+
 
 def categorisePurchase(input):
     return [Purchase(15.77, "shopping"), Purchase(24.00, "misc"), Purchase(48.00, "misc")]
@@ -41,6 +82,5 @@ def groupPurchases(inputArray):
         categories[purchase.type] += purchase.value
 
     return categories
-
 
 if __name__ == "__main__": main() 
