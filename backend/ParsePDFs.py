@@ -1,5 +1,5 @@
 from Classes import Purchase
-from MiscMethods import isDate
+from MiscMethods import isDate, isFloat
 from pypdf import PdfReader
 import re
 
@@ -7,11 +7,10 @@ import re
 
 
 def main():
-    purchases = getPurchases(["testPdf"])
+    purchases = getPurchases(["pdfs\\Statement2025-09-11.PDF", "pdfs\\9043929.pdf"])
     categoriesDict = groupPurchases(purchases)
 
     print(categoriesDict)
-
 
 
 def getPurchases(pdfsArray): 
@@ -41,28 +40,45 @@ def parsePdf(inputPDFs):
 
     purchases = ''.join(pdfContent).split("\n")
 
-    patterns = {"Fith/Third" : re.compile(r"\d{2}/\d{2}\s+\d+\.\d+.*?(?=X{12}\d{3}[X\d])")}
+    patterns = {"Fith/Third" : re.compile(r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=X{12}\d{3}[X\d])")}
     
     foundPurchases = []
-    for textContent in purchases:
-        found = patterns["Fith/Third"].findall(textContent)
+    for textContent in purchases: # <-- fix ai slop
+        normilzedText = re.sub(patterns["Fith/Third"], r"\1 \2", textContent) # <-- fix ai slop
 
-        for x in found: foundPurchases.append(x)
+        found = patterns["Fith/Third"].findall(normilzedText) # <-- fix ai slop
+
+        for match in found: # <-- fix ai slop
+            full_purchase = f"{match[0]}{match[1]}" # <-- fix ai slop
+            foundPurchases.append(full_purchase) # <-- fix ai slop
+
 
     return foundPurchases
 
-def categorisePurchase(input):
-    return [Purchase(15.77, "shopping"), Purchase(24.00, "misc"), Purchase(48.00, "misc")]
+def categorisePurchase(textInput):
+    date, value, message = None, None, []
+
+    for word in textInput.split(' '):
+        if isDate(word): date = word
+        elif isFloat(word): value = word
+        else: message.append(word)
+
+    return Purchase(value, getPurchaseType(''.join(message)), date)
+
+def getPurchaseType(message: str):
+    # <-- needs to figure out what type of purchase it is
+
+    return 'misc'
 
 def groupPurchases(inputArray):
-    categories = {"food_drink": 0,
-                  "gas": 0,
-                  "housing": 0,
-                  "shopping": 0,
-                  "misc": 0}
+    categories = {"food_drink": 0.0,
+                  "gas": 0.0,
+                  "housing": 0.0,
+                  "shopping": 0.0,
+                  "misc": 0.0}
     
-    for purchase in inputArray[0]:
-        categories[purchase.type] += purchase.value
+    for purchase in inputArray:
+        categories[purchase.type] += float(purchase.value)
 
     return categories
 

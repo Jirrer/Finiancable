@@ -1,6 +1,6 @@
 from datetime import datetime
 
-def isDate(string):
+def isDate(string: str):
     formats = ["%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
     for fmt in formats:
         try:
@@ -9,3 +9,10 @@ def isDate(string):
         except ValueError:
             continue
     return False
+
+def isFloat(string: str):
+    try:
+        float(string)
+        return '.' in string
+    except ValueError:
+        return False
