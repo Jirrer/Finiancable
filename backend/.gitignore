@@ -1,2 +1,4 @@
 *.PDF
 env
+*.csv
+*.joblib

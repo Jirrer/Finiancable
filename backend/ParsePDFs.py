@@ -6,12 +6,11 @@ import re
 # Issue - skipped netflix because it did not have a card number with it
 
 
-def main():
-    purchases = getPurchases(["pdfs\\Statement2025-09-11.PDF", "pdfs\\9043929.pdf"])
+def main(pdfs: list):
+    purchases = getPurchases(pdfs)
     categoriesDict = groupPurchases(purchases)
 
-    print(categoriesDict)
-
+ 
 
 def getPurchases(pdfsArray): 
     rawPurchases = parsePdf(pdfsArray)
@@ -63,10 +62,12 @@ def categorisePurchase(textInput):
         elif isFloat(word): value = word
         else: message.append(word)
 
-    return Purchase(value, getPurchaseType(''.join(message)), date)
+    return Purchase(value, getPurchaseType(' '.join(message)), date)
 
 def getPurchaseType(message: str):
     # <-- needs to figure out what type of purchase it is
+
+    print(message)
 
     return 'misc'
 
@@ -75,6 +76,7 @@ def groupPurchases(inputArray):
                   "gas": 0.0,
                   "housing": 0.0,
                   "shopping": 0.0,
+                  'subscriptions': 0.0,
                   "misc": 0.0}
     
     for purchase in inputArray:
