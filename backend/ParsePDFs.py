@@ -3,6 +3,7 @@ from MiscMethods import isDate, isFloat
 from pypdf import PdfReader
 import re
 
+
 # Issue - skipped netflix because it did not have a card number with it
 
 
@@ -10,16 +11,19 @@ def main(pdfs: list):
     purchases = getPurchases(pdfs)
     categoriesDict = groupPurchases(purchases)
 
+    # print(purchases)
+    print(categoriesDict)
+
+        
+
  
 
-def getPurchases(pdfsArray): 
+def getPurchases(pdfsArray: list): 
     rawPurchases = parsePdf(pdfsArray)
 
-    purchases = []
-    for p in rawPurchases:
-        purchases.append(categorisePurchase(p)) # < ready to start categorizing
+    return categorisePurchases(rawPurchases)
 
-    return purchases
+
     
 
 def parsePdf(inputPDFs):
@@ -37,39 +41,81 @@ def parsePdf(inputPDFs):
 
             pdfContent.append(page.extract_text())
 
+
     purchases = ''.join(pdfContent).split("\n")
+    # <---- need to prepare text before to make sure no purchase allows more than one regex. ie - 5/3 can ONLY find 5/3
+    losses = [ # <-- explore different data types for storage
+        (
+            re.compile(r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])"),
+            lambda text: re.sub(
+                r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])",
+                r"\1 \2",
+                text
+            )
+        ),
 
-    patterns = {"Fith/Third" : re.compile(r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=X{12}\d{3}[X\d])")}
+        (
+            re.compile(r"(\d\d/\d\d/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)"),
+            lambda text: re.sub(
+                r"(\d\d/\d\d/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)",
+                r"\1",
+                text
+            )
+        )
+
+    ]
+
+                       
     
-    foundPurchases = []
-    for textContent in purchases: # <-- fix ai slop
-        normilzedText = re.sub(patterns["Fith/Third"], r"\1 \2", textContent) # <-- fix ai slop
+    foundPurchases = [] 
+    for textContent in purchases:
+        for regex in losses:
+            test, pattern = regex
 
-        found = patterns["Fith/Third"].findall(normilzedText) # <-- fix ai slop
+            # if normalized:
+            #     normalizedText = normalized(textContent)
+            # else:
+            #     normalizedText = textContent
 
-        for match in found: # <-- fix ai slop
-            full_purchase = f"{match[0]}{match[1]}" # <-- fix ai slop
-            foundPurchases.append(full_purchase) # <-- fix ai slop
+            for match in pattern.findall(textContent):
+                foundPurchases.append(match)
 
 
+            
+
+
+    print(foundPurchases)
+
+        
+
+    return []
     return foundPurchases
 
-def categorisePurchase(textInput):
-    date, value, message = None, None, []
+def categorisePurchases(purchasesArray):
+    from LLM import RunLLM
 
-    for word in textInput.split(' '):
-        if isDate(word): date = word
-        elif isFloat(word): value = word
-        else: message.append(word)
+    dates, values, messages = [], [], []
 
-    return Purchase(value, getPurchaseType(' '.join(message)), date)
+    for purchase in purchasesArray:
+        currDate, currValue, currMessage, = None, None, []
 
-def getPurchaseType(message: str):
-    # <-- needs to figure out what type of purchase it is
+        for word in purchase.split(' '):
+            if isDate(word): currDate = word
+            elif isFloat(word): currValue= word
+            else: currMessage.append(word)
 
-    print(message)
+        dates.append(currDate)
+        values.append(currValue)
+        messages.append(' '.join(currMessage))
 
-    return 'misc'
+    if len(purchasesArray): categories = RunLLM(messages)
+
+    output = [None] * len(purchasesArray)
+
+    for index in range(len(purchasesArray)):
+        output[index] = Purchase(values[index], categories[index], dates[index])
+
+    return output
 
 def groupPurchases(inputArray):
     categories = {"food_drink": 0.0,
@@ -77,10 +123,12 @@ def groupPurchases(inputArray):
                   "housing": 0.0,
                   "shopping": 0.0,
                   'subscriptions': 0.0,
+                  'cash': 0.0,
+                  'loans': 0.0,
                   "misc": 0.0}
     
     for purchase in inputArray:
-        categories[purchase.type] += float(purchase.value)
+        categories[purchase.category] += float(purchase.value)
 
     return categories
 

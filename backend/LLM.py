@@ -2,18 +2,30 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib, csv
 from typing import List, Tuple
+from ParsePDFs import parsePdf
 
 
-def RunLLM(strings: list):
+def RunLLM(strings: list) -> list:
     vectorizer = joblib.load("LLM_data\\vectorizer.joblib")
 
     clf = joblib.load("LLM_data\\classifier.joblib")
 
-    prediction = clf.predict(vectorizer.transform(strings))
+    predictions = clf.predict(vectorizer.transform(strings))
     
-    for x in prediction:
-        print(x)
+    return predictions
 
+def TrainModel():
+    texts, labels = [], []
+
+    purchasesArray = parsePdf(['LLM_data\\TrainingData.PDF'])
+
+    for purchase in purchasesArray:
+        texts.append(purchase)
+        labels.append(input(f"{purchase}: "))
+
+    newModel = (texts, labels)
+
+    TrainLLM(newModel)
 
 def TrainLLM(newModel: Tuple[List[str], List[str]]):
     oldText, oldLabels = pullFromCsv('LLM_data\\Texts.csv'), pullFromCsv('LLM_data\\Labels.csv')
@@ -66,7 +78,7 @@ def pullFromCsv(fileLocation):
     return output
 
 def pushToCsv(fileLocation, content: list):
-    with open(fileLocation, mode='w', newline='') as file:
+    with open(fileLocation, mode='a', newline='') as file:
         writer = csv.writer(file)
         
         writer.writerow(content)

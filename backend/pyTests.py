@@ -2,41 +2,11 @@ import ParsePDFs
 import MiscMethods
 import LLM
 
-# ParsePDFs.main(["pdfs\\Statement2025-09-11.PDF", "pdfs\\9043929.pdf"])
+ParsePDFs.main(["pdfs\\9043929.PDF"])
 
- # <------------ need to start training from text file
-text = [
-]
 
-labels = ['shopping',
-        'misc',
-        'misc',
-        'gas',
-        'food_drink',
-        'shopping',
-        'shopping',
-        'misc',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'food_drink',
-        'subscriptions',
-        'gas'
-]
 
-newModel = (text, labels)
+# tests = ['MERCHANT PAYMENT THEIS PARTY STOR - 01R037 210 S MAIN ST US FOWLER MI ON 081825', 'DEBIT CARD PURCHASE AT TST*DUBLIN SQUARE, East Lansing, MI ON 082225 ', 'MERCHANT PAYMENT NNT HUCKLEBERRY - 006633 2900 N. HUBBARDSTON RD. PEWAMO MI ON 081525']
 
-purchasesTest = [
-    
-]
-
-# LLM.RunLLM(purchasesTest)
-LLM.ClearLLM()
+# LLM.RunLLM(tests)
+# LLM.TrainModel()
