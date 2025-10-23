@@ -2,7 +2,7 @@ import ParsePDFs
 import MiscMethods
 import LLM
 
-ParsePDFs.main(["pdfs\\9043929.PDF"])
+ParsePDFs.main(["pdfs/9043929.PDF"])
 
 
 

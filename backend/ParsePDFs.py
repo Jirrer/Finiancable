@@ -12,19 +12,15 @@ def main(pdfs: list):
     categoriesDict = groupPurchases(purchases)
 
     # print(purchases)
-    print(categoriesDict)
+    # print(categoriesDict)
 
-        
-
- 
+    # for x in purchases:
+    #     print(x.category)
 
 def getPurchases(pdfsArray: list): 
     rawPurchases = parsePdf(pdfsArray)
 
     return categorisePurchases(rawPurchases)
-
-
-    
 
 def parsePdf(inputPDFs):
     pdfReadersArray = [PdfReader(pdf) for pdf in inputPDFs]
@@ -44,51 +40,56 @@ def parsePdf(inputPDFs):
 
     purchases = ''.join(pdfContent).split("\n")
     # <---- need to prepare text before to make sure no purchase allows more than one regex. ie - 5/3 can ONLY find 5/3
+
     losses = [ # <-- explore different data types for storage
         (
             re.compile(r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])"),
             lambda text: re.sub(
                 r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])",
-                r"\1 \2",
+                lambda m: f"{m.group(1)} {''.join(c for c in m.group(2) if not c.isdigit())}",
                 text
             )
         ),
 
         (
-            re.compile(r"(\d\d/\d\d/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)"),
+            # re.compile(r"(\d\d/\d\d\s+\d+\.\d\d\s+.*?)(?=:?\s?TRUE ACH CO)"),
+            re.compile(r"\d\d/\d\d"),
             lambda text: re.sub(
-                r"(\d\d/\d\d/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)",
-                r"\1",
+                # r"(\d\d/\d\d)(/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)",
+                r"\d\d/\d\d/\d\d",
+                # lambda m: f"{m.group(1)}99 {m.group(4)} {''.join(c for c in m.group(5) if not c.isdigit())}",
+                r"\d\d/\d\d",
                 text
             )
         )
 
     ]
 
-                       
-    
+
+
     foundPurchases = [] 
     for textContent in purchases:
         for regex in losses:
-            test, pattern = regex
+            pattern, normalizer = regex
 
-            # if normalized:
-            #     normalizedText = normalized(textContent)
-            # else:
-            #     normalizedText = textContent
+            cleanedText = normalizer(textContent)   
 
-            for match in pattern.findall(textContent):
-                foundPurchases.append(match)
+            found = pattern.findall(cleanedText)
+
+            if len(found) == 1: found = [(found[0],)]
 
 
-            
+            for match in found:
+                foundPurchases.append(''.join(match))
 
-
-    print(foundPurchases)
-
-        
+ 
+    # for x in foundPurchases:
+    #     print(x)
+    print(purchases)
+    print(foundPurchases[0])
 
     return []
+
     return foundPurchases
 
 def categorisePurchases(purchasesArray):
@@ -97,6 +98,7 @@ def categorisePurchases(purchasesArray):
     dates, values, messages = [], [], []
 
     for purchase in purchasesArray:
+        # print(purchase)
         currDate, currValue, currMessage, = None, None, []
 
         for word in purchase.split(' '):
