@@ -3,5 +3,5 @@ import MiscMethods
 import LLM
 
 # LLM.pullFromDatabase()
-LLM.TrainModel()
+# LLM.TrainModel()
 # LLM.ClearLLM()

@@ -61,7 +61,6 @@ def TrainLLM(newModel: Tuple[List[str], List[str]]):
     else:
         joblib.dump('',"data\\vectorizer.joblib")
         joblib.dump('', "data\\classifier.joblib")
-        print("Empty Model")
 
     connection.commit()
     connection.close()
@@ -88,17 +87,25 @@ def pushToDatabase(cursor, newTexts, newLables):
 
 
 def ClearLLM():
-    connection = sqlite3.connect('data\\Financeable.db')
+    verification = input("Are you sure you want to reset the model data? (This action cannot be undone)\nType 'clear model data': ")
 
-    curser = connection.cursor()
+    if verification == 'clear model data':
+        connection = sqlite3.connect('data\\Financeable.db')
 
-    curser.execute("DELETE FROM ML_data")
-    curser.execute("DELETE FROM sqlite_sequence WHERE name='ML_data'")
+        curser = connection.cursor()
 
-    connection.commit()
+        curser.execute("DELETE FROM ML_data")
+        curser.execute("DELETE FROM sqlite_sequence WHERE name='ML_data'")
 
-    curser.execute("VACUUM")
+        connection.commit()
 
-    connection.close()
+        curser.execute("VACUUM")
 
-    TrainLLM(([], []))
+        connection.close()
+
+        TrainLLM(([], []))
+
+        print("Model Reset.")
+    
+    else:
+        print("Kept Model")
