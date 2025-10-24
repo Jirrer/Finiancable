@@ -6,7 +6,7 @@ import re
 
 # Issue - skipped netflix because it did not have a card number with it
 # Issue training model
-
+# To-Do: refactor
 
 def main(pdfs: list):
     purchases = getPurchases(pdfs)

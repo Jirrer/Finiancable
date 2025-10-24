@@ -2,12 +2,6 @@ import ParsePDFs
 import MiscMethods
 import LLM
 
-# ParsePDFs.main(["pdfs/9043929.PDF", "pdfs/Statement2025-09-11.PDF"])
-
-
-
-# tests = ['MERCHANT PAYMENT THEIS PARTY STOR - 01R037 210 S MAIN ST US FOWLER MI ON 081825', 'DEBIT CARD PURCHASE AT TST*DUBLIN SQUARE, East Lansing, MI ON 082225 ', 'MERCHANT PAYMENT NNT HUCKLEBERRY - 006633 2900 N. HUBBARDSTON RD. PEWAMO MI ON 081525']
-
-# LLM.RunLLM(tests)
+# LLM.pullFromDatabase()
 LLM.TrainModel()
 # LLM.ClearLLM()

@@ -1,14 +1,14 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-import joblib, csv
+import joblib, csv, sqlite3
 from typing import List, Tuple
 from ParsePDFs import parsePdf
 
 
 def RunLLM(strings: list) -> list:
-    vectorizer = joblib.load("LLM_data\\vectorizer.joblib")
+    vectorizer = joblib.load("data\\vectorizer.joblib")
 
-    clf = joblib.load("LLM_data\\classifier.joblib")
+    clf = joblib.load("data\\classifier.joblib")
 
     predictions = clf.predict(vectorizer.transform(strings))
     
@@ -17,7 +17,7 @@ def RunLLM(strings: list) -> list:
 def TrainModel():
     texts, labels = [], []
 
-    purchasesArray = parsePdf(['LLM_data\\TrainingData.PDF'])
+    purchasesArray = parsePdf(['data\\TrainingData.PDF'])
 
     for purchase in purchasesArray:
         texts.append(purchase[2])
@@ -28,7 +28,11 @@ def TrainModel():
     TrainLLM(newModel)
 
 def TrainLLM(newModel: Tuple[List[str], List[str]]):
-    oldText, oldLabels = pullFromCsv('LLM_data\\Texts.csv'), pullFromCsv('LLM_data\\Labels.csv')
+    connection = sqlite3.connect('data\\Financeable.db')
+
+    cursor = connection.cursor()
+
+    oldText, oldLabels = pullFromDatabase(cursor)
 
     newText, newLabels = newModel[0], newModel[1]
 
@@ -42,8 +46,7 @@ def TrainLLM(newModel: Tuple[List[str], List[str]]):
     finalText, finalLabels = oldText, oldLabels
 
     if finalText and finalLabels:
-        pushToCsv('LLM_data\\Texts.csv', finalText)
-        pushToCsv('LLM_data\\Labels.csv',finalLabels)
+        pushToDatabase(cursor, newText, newLabels)
 
         vectorizer = TfidfVectorizer()
         X = vectorizer.fit_transform(finalText)
@@ -51,34 +54,51 @@ def TrainLLM(newModel: Tuple[List[str], List[str]]):
         clf = MultinomialNB()
         clf.fit(X, finalLabels)
 
-        joblib.dump(vectorizer,"LLM_data\\vectorizer.joblib")
-        joblib.dump(clf, "LLM_data\\classifier.joblib")
+        joblib.dump(vectorizer,"data\\vectorizer.joblib")
+        joblib.dump(clf, "data\\classifier.joblib")
 
         print("Model trained and saved successfully!")
     else:
-        joblib.dump('',"LLM_data\\vectorizer.joblib")
-        joblib.dump('', "LLM_data\\classifier.joblib")
+        joblib.dump('',"data\\vectorizer.joblib")
+        joblib.dump('', "data\\classifier.joblib")
         print("Empty Model")
 
+    connection.commit()
+    connection.close()
+
+
+def pullFromDatabase(cursor) -> tuple:
+    cursor.execute("SELECT text, label FROM ML_data")
+
+    rows = cursor.fetchall()
+
+    try:
+        textOutput, labelOutput = zip(*rows)
+
+        textOutput = list(textOutput)
+        labelOutput = list(labelOutput)
+
+        return (textOutput, labelOutput)
+    
+    except ValueError:
+        return ([], [])
+
+def pushToDatabase(cursor, newTexts, newLables):
+    cursor.executemany("INSERT INTO ML_data (text, label) VALUES (?, ?)", list(zip(newTexts, newLables)))
+
+
 def ClearLLM():
-    with open('LLM_data\\Texts.csv', mode='w', newline='') as file: pass
-    with open('LLM_data\\Labels.csv', mode='w', newline='') as file: pass
+    connection = sqlite3.connect('data\\Financeable.db')
+
+    curser = connection.cursor()
+
+    curser.execute("DELETE FROM ML_data")
+    curser.execute("DELETE FROM sqlite_sequence WHERE name='ML_data'")
+
+    connection.commit()
+
+    curser.execute("VACUUM")
+
+    connection.close()
 
     TrainLLM(([], []))
-
-def pullFromCsv(fileLocation):
-    output = []
-    
-    with open(fileLocation, mode='w', newline='') as file:
-        reader = csv.reader(file)
-
-        for row in reader:
-            if row: output.append(row[0])
-
-    return output
-
-def pushToCsv(fileLocation, content: list):
-    with open(fileLocation, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        
-        writer.writerow(content)
