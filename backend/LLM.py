@@ -20,7 +20,7 @@ def TrainModel():
     purchasesArray = parsePdf(['LLM_data\\TrainingData.PDF'])
 
     for purchase in purchasesArray:
-        texts.append(purchase)
+        texts.append(purchase[2])
         labels.append(input(f"{purchase}: "))
 
     newModel = (texts, labels)
@@ -69,7 +69,7 @@ def ClearLLM():
 def pullFromCsv(fileLocation):
     output = []
     
-    with open(fileLocation, mode='r', newline='') as file:
+    with open(fileLocation, mode='w', newline='') as file:
         reader = csv.reader(file)
 
         for row in reader:

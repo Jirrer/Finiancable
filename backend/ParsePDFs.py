@@ -5,6 +5,7 @@ import re
 
 
 # Issue - skipped netflix because it did not have a card number with it
+# Issue training model
 
 
 def main(pdfs: list):
@@ -12,10 +13,10 @@ def main(pdfs: list):
     categoriesDict = groupPurchases(purchases)
 
     # print(purchases)
-    # print(categoriesDict)
+    print(categoriesDict)
 
-    # for x in purchases:
-    #     print(x.category)
+    for x in purchases:
+        print(x.category)
 
 def getPurchases(pdfsArray: list): 
     rawPurchases = parsePdf(pdfsArray)
@@ -43,29 +44,24 @@ def parsePdf(inputPDFs):
 
     losses = [ # <-- explore different data types for storage
         (
-            re.compile(r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])"),
+            re.compile(r"(\d{2}/\d{2})\s+(\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])"),
             lambda text: re.sub(
                 r"(\d{2}/\d{2}\s+\d+\.\d+)(.*?)(?=\s?FROM\s?CARD#:\s?X{12}\d{3}[X\d])",
-                lambda m: f"{m.group(1)} {''.join(c for c in m.group(2) if not c.isdigit())}",
+                r"\1 \2",
                 text
             )
         ),
 
         (
-            # re.compile(r"(\d\d/\d\d\s+\d+\.\d\d\s+.*?)(?=:?\s?TRUE ACH CO)"),
-            re.compile(r"\d\d/\d\d"),
+            re.compile(r"(\d\d/\d\d)\s+(\d+\.\d\d)(.*?)(?=:?\s?TRUE ACH CO)"),
             lambda text: re.sub(
-                # r"(\d\d/\d\d)(/\d\d)\s+(\d+\.\d\d)\s+(\d+\.\d\d)\s+(-\d+\.\d\d)\s+(.*?)(?=:?\s?TRUE ACH CO)",
-                r"\d\d/\d\d/\d\d",
-                # lambda m: f"{m.group(1)}99 {m.group(4)} {''.join(c for c in m.group(5) if not c.isdigit())}",
-                r"\d\d/\d\d",
+                r"(\d\d/\d\d)/\d\d\s+\d+\.\d\d\s+(\d+\.\d\d)\s+-\d+\.\d\d\s+(.*?)",
+                r"\1 \2 \3",
                 text
             )
         )
 
     ]
-
-
 
     foundPurchases = [] 
     for textContent in purchases:
@@ -76,19 +72,8 @@ def parsePdf(inputPDFs):
 
             found = pattern.findall(cleanedText)
 
-            if len(found) == 1: found = [(found[0],)]
-
-
             for match in found:
-                foundPurchases.append(''.join(match))
-
- 
-    # for x in foundPurchases:
-    #     print(x)
-    print(purchases)
-    print(foundPurchases[0])
-
-    return []
+                foundPurchases.append(match)
 
     return foundPurchases
 
@@ -98,17 +83,9 @@ def categorisePurchases(purchasesArray):
     dates, values, messages = [], [], []
 
     for purchase in purchasesArray:
-        # print(purchase)
-        currDate, currValue, currMessage, = None, None, []
-
-        for word in purchase.split(' '):
-            if isDate(word): currDate = word
-            elif isFloat(word): currValue= word
-            else: currMessage.append(word)
-
-        dates.append(currDate)
-        values.append(currValue)
-        messages.append(' '.join(currMessage))
+        dates.append(purchase[0])
+        values.append(purchase[1])
+        messages.append(purchase[2])
 
     if len(purchasesArray): categories = RunLLM(messages)
 
@@ -126,7 +103,7 @@ def groupPurchases(inputArray):
                   "shopping": 0.0,
                   'subscriptions': 0.0,
                   'cash': 0.0,
-                  'loans': 0.0,
+                  'loan': 0.0,
                   "misc": 0.0}
     
     for purchase in inputArray:
