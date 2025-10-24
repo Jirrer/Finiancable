@@ -1,52 +1,49 @@
+import joblib, os, sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-import joblib, csv, sqlite3
 from typing import List, Tuple
 from ParsePDFs import parsePdf
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def RunLLM(strings: list) -> list:
-    vectorizer = joblib.load("data\\vectorizer.joblib")
+    vectorizer = joblib.load(os.getenv('VECTORIZER_LOCATION'))
+    clf = joblib.load(os.getenv('CLASSIFIER_LOCATION'))
 
-    clf = joblib.load("data\\classifier.joblib")
-
-    predictions = clf.predict(vectorizer.transform(strings))
+    return clf.predict(vectorizer.transform(strings))
     
-    return predictions
-
 def TrainModel():
-    texts, labels = [], []
+    trainingData = [filePath for filePath in os.listdir(os.getenv('TRAINING_DATA_LOCATION'))]
 
-    purchasesArray = parsePdf(['data\\TrainingData.PDF'])
+    purchasesArray = parsePdf(trainingData)
+
+    texts, labels = [], []
 
     for purchase in purchasesArray:
         texts.append(purchase[2])
         labels.append(input(f"{purchase}: "))
 
-    newModel = (texts, labels)
+    TrainLLM(texts, labels)
 
-    TrainLLM(newModel)
-
-def TrainLLM(newModel: Tuple[List[str], List[str]]):
-    connection = sqlite3.connect('data\\Financeable.db')
+def TrainLLM(newTexts, newLabels):
+    connection = sqlite3.connect(os.getenv('DATABASE_LOCATION'))
 
     cursor = connection.cursor()
 
     oldText, oldLabels = pullFromDatabase(cursor)
 
-    newText, newLabels = newModel[0], newModel[1]
-
-    if len(newText) != len(newLabels):
+    if len(newTexts) != len(newLabels):
         print("Number of Labels does not match number of texts!")
         return
 
-    oldText.extend(newText)
+    oldText.extend(newTexts)
     oldLabels.extend(newLabels)
 
     finalText, finalLabels = oldText, oldLabels
 
     if finalText and finalLabels:
-        pushToDatabase(cursor, newText, newLabels)
+        pushToDatabase(cursor, newTexts, newLabels)
 
         vectorizer = TfidfVectorizer()
         X = vectorizer.fit_transform(finalText)
@@ -54,17 +51,16 @@ def TrainLLM(newModel: Tuple[List[str], List[str]]):
         clf = MultinomialNB()
         clf.fit(X, finalLabels)
 
-        joblib.dump(vectorizer,"data\\vectorizer.joblib")
-        joblib.dump(clf, "data\\classifier.joblib")
+        joblib.dump(vectorizer,os.getenv('VECTORIZER_LOCATION'))
+        joblib.dump(clf, os.getenv('CLASSIFIER_LOCATION'))
 
         print("Model trained and saved successfully!")
     else:
-        joblib.dump('',"data\\vectorizer.joblib")
-        joblib.dump('', "data\\classifier.joblib")
+        joblib.dump('', os.getenv('VECTORIZER_LOCATION'))
+        joblib.dump('', os.getenv('CLASSIFIER_LOCATION'))
 
     connection.commit()
     connection.close()
-
 
 def pullFromDatabase(cursor) -> tuple:
     cursor.execute("SELECT text, label FROM ML_data")
@@ -85,12 +81,11 @@ def pullFromDatabase(cursor) -> tuple:
 def pushToDatabase(cursor, newTexts, newLables):
     cursor.executemany("INSERT INTO ML_data (text, label) VALUES (?, ?)", list(zip(newTexts, newLables)))
 
-
 def ClearLLM():
     verification = input("Are you sure you want to reset the model data? (This action cannot be undone)\nType 'clear model data': ")
 
     if verification == 'clear model data':
-        connection = sqlite3.connect('data\\Financeable.db')
+        connection = sqlite3.connect(os.getenv('DATABASE_LOCATION'))
 
         curser = connection.cursor()
 

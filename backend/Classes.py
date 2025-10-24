@@ -3,4 +3,3 @@ class Purchase:
         self.value = purchaseValue
         self.category = purchaseType
         self.date = purchaseDate
-

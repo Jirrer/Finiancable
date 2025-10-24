@@ -5,3 +5,6 @@ import LLM
 # LLM.pullFromDatabase()
 # LLM.TrainModel()
 # LLM.ClearLLM()
+# LLM.RunLLM()
+
+ParsePDFs.main()
