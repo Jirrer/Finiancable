@@ -1,49 +1,50 @@
+import joblib, os, sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-import joblib, csv
 from typing import List, Tuple
-from ParsePDFs import parsePdf
+from PullingData import pullData, pullContent
+from dotenv import load_dotenv
 
+load_dotenv()
+
+# refactor to allow training a model on gains
 
 def RunLLM(strings: list) -> list:
-    vectorizer = joblib.load("LLM_data\\vectorizer.joblib")
+    vectorizer = joblib.load(os.getenv('VECTORIZER_LOCATION'))
+    clf = joblib.load(os.getenv('CLASSIFIER_LOCATION'))
 
-    clf = joblib.load("LLM_data\\classifier.joblib")
-
-    predictions = clf.predict(vectorizer.transform(strings))
+    return clf.predict(vectorizer.transform(strings))
     
-    return predictions
+def TrainModelLosses():
+    rawData = pullData('training')
+    losses = pullContent(rawData, 'lossess_regex')
 
-def TrainModel():
     texts, labels = [], []
 
-    purchasesArray = parsePdf(['LLM_data\\TrainingData.PDF'])
-
-    for purchase in purchasesArray:
+    for purchase in losses:
         texts.append(purchase[2])
         labels.append(input(f"{purchase}: "))
 
-    newModel = (texts, labels)
+    TrainLLM(texts, labels)
 
-    TrainLLM(newModel)
+def TrainLLM(newTexts, newLabels):
+    connection = sqlite3.connect(os.getenv('DATABASE_LOCATION'))
 
-def TrainLLM(newModel: Tuple[List[str], List[str]]):
-    oldText, oldLabels = pullFromCsv('LLM_data\\Texts.csv'), pullFromCsv('LLM_data\\Labels.csv')
+    cursor = connection.cursor()
 
-    newText, newLabels = newModel[0], newModel[1]
+    oldText, oldLabels = pullFromDatabase(cursor)
 
-    if len(newText) != len(newLabels):
+    if len(newTexts) != len(newLabels):
         print("Number of Labels does not match number of texts!")
         return
 
-    oldText.extend(newText)
+    oldText.extend(newTexts)
     oldLabels.extend(newLabels)
 
     finalText, finalLabels = oldText, oldLabels
 
     if finalText and finalLabels:
-        pushToCsv('LLM_data\\Texts.csv', finalText)
-        pushToCsv('LLM_data\\Labels.csv',finalLabels)
+        pushToDatabase(cursor, newTexts, newLabels)
 
         vectorizer = TfidfVectorizer()
         X = vectorizer.fit_transform(finalText)
@@ -51,34 +52,56 @@ def TrainLLM(newModel: Tuple[List[str], List[str]]):
         clf = MultinomialNB()
         clf.fit(X, finalLabels)
 
-        joblib.dump(vectorizer,"LLM_data\\vectorizer.joblib")
-        joblib.dump(clf, "LLM_data\\classifier.joblib")
+        joblib.dump(vectorizer,os.getenv('VECTORIZER_LOCATION'))
+        joblib.dump(clf, os.getenv('CLASSIFIER_LOCATION'))
 
         print("Model trained and saved successfully!")
     else:
-        joblib.dump('',"LLM_data\\vectorizer.joblib")
-        joblib.dump('', "LLM_data\\classifier.joblib")
-        print("Empty Model")
+        joblib.dump('', os.getenv('VECTORIZER_LOCATION'))
+        joblib.dump('', os.getenv('CLASSIFIER_LOCATION'))
+
+    connection.commit()
+    connection.close()
+
+def pullFromDatabase(cursor) -> tuple:
+    cursor.execute("SELECT text, label FROM ML_data")
+
+    rows = cursor.fetchall()
+
+    try:
+        textOutput, labelOutput = zip(*rows)
+
+        textOutput = list(textOutput)
+        labelOutput = list(labelOutput)
+
+        return (textOutput, labelOutput)
+    
+    except ValueError:
+        return ([], [])
+
+def pushToDatabase(cursor, newTexts, newLables):
+    cursor.executemany("INSERT INTO ML_data (text, label) VALUES (?, ?)", list(zip(newTexts, newLables)))
 
 def ClearLLM():
-    with open('LLM_data\\Texts.csv', mode='w', newline='') as file: pass
-    with open('LLM_data\\Labels.csv', mode='w', newline='') as file: pass
+    verification = input("Are you sure you want to reset the model data? (This action cannot be undone)\nType 'clear model data': ")
 
-    TrainLLM(([], []))
+    if verification == 'clear model data':
+        connection = sqlite3.connect(os.getenv('DATABASE_LOCATION'))
 
-def pullFromCsv(fileLocation):
-    output = []
+        curser = connection.cursor()
+
+        curser.execute("DELETE FROM ML_data")
+        curser.execute("DELETE FROM sqlite_sequence WHERE name='ML_data'")
+
+        connection.commit()
+
+        curser.execute("VACUUM")
+
+        connection.close()
+
+        TrainLLM(([], []))
+
+        print("Model Reset.")
     
-    with open(fileLocation, mode='w', newline='') as file:
-        reader = csv.reader(file)
-
-        for row in reader:
-            if row: output.append(row[0])
-
-    return output
-
-def pushToCsv(fileLocation, content: list):
-    with open(fileLocation, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        
-        writer.writerow(content)
+    else:
+        print("Kept Model")
