@@ -2,10 +2,12 @@ import joblib, os, sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from typing import List, Tuple
-from ParsePDFs import parsePdf
+from PullingData import pullData, pullContent
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# refactor to allow training a model on gains
 
 def RunLLM(strings: list) -> list:
     vectorizer = joblib.load(os.getenv('VECTORIZER_LOCATION'))
@@ -13,14 +15,13 @@ def RunLLM(strings: list) -> list:
 
     return clf.predict(vectorizer.transform(strings))
     
-def TrainModel():
-    trainingData = [filePath for filePath in os.listdir(os.getenv('TRAINING_DATA_LOCATION'))]
-
-    purchasesArray = parsePdf(trainingData)
+def TrainModelLosses():
+    rawData = pullData('training')
+    losses = pullContent(rawData, 'lossess_regex')
 
     texts, labels = [], []
 
-    for purchase in purchasesArray:
+    for purchase in losses:
         texts.append(purchase[2])
         labels.append(input(f"{purchase}: "))
 

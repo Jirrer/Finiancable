@@ -3,39 +3,48 @@ from Classes import Purchase
 from MiscMethods import isDate, isFloat
 from pypdf import PdfReader
 from dotenv import load_dotenv
+from typing import Literal
 
 # Issue - skipped netflix because it did not have a card number with it
-# To-Do: refactor
+# To-Do: refactor again (later)
 
 load_dotenv()
 
 with open(os.getenv('DATA_LOCATION'), 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
 
-def main():
-    lossDict = getLosses()
-
-    print(lossDict)
-    
-
-
-
-def getLosses() -> dict:
-    lossPDfS = [filePath for filePath in os.listdir(os.getenv('LOSS_PDF_LOCATION'))]
-
-    rawLosses = pullLosses(lossPDfS)
-    finalPurchases = categorisePurchases(rawPurchases)
+def pullLosses() -> dict:
+    rawLosses = pullData('losses')
+    purchases = pullContent(rawLosses, 'lossess_regex')
+    finalPurchases = categorisePurchases(purchases)
     categoriesDict = groupPurchases(finalPurchases)
 
     return categoriesDict
 
-def pullLosses(inputPDFs):
-    pdfReadersArray = [PdfReader(f"{os.getenv('LOSS_PDF_LOCATION')}\\{pdf}") for pdf in inputPDFs]
+def pullGains() -> dict:
+    rawGains = pullData('losses')
+    purchases = pullContent(rawGains, 'gains_regex')
+    finalPurchases = categorisePurchases(purchases)
+    categoriesDict = groupPurchases(finalPurchases)
+
+    print(categoriesDict)
+
+    return categoriesDict
+
+def pullData(parseType: Literal['losses', 'gains', 'training']):
+    if parseType == 'losses': folderPath = os.getenv('LOSS_PDF_LOCATION')
+    elif parseType == 'gains': folderPath = os.getenv("GAIN_PDF_LOCATION")
+    elif parseType == 'training': folderPath = os.getenv('TRAINING_DATA_LOCATION')
+
+    pdfLocations = [filePath for filePath in os.listdir(folderPath)]
+
+    pdfReadersArray = [PdfReader(f"{folderPath}\\{pdf}") for pdf in pdfLocations]
+
     pdfContent = []
 
     for reader in pdfReadersArray:
         if reader.is_encrypted:
-            reader.decrypt('') # <--- fix
+            reader.decrypt('') # <---------- fix
 
         numPages = PdfReader.get_num_pages(reader)
 
@@ -45,26 +54,29 @@ def pullLosses(inputPDFs):
             pdfContent.append(page.extract_text())
 
 
-    purchases = ''.join(pdfContent).split("\n")
-    # <---- need to prepare text before to make sure no purchase allows more than one regex. ie - 5/3 can ONLY find 5/3
+    pdfsOutput = ''.join(pdfContent).split("\n")
 
-    losses = []
+    return pdfsOutput
 
-    for lossRegex in jsonData["lossess_regex"]:
-        losses.append(
+def pullContent(rawContent: str, regexType: Literal['lossess_regex', 'gains_regex']):
+    content = []
+
+    for contentRegex in jsonData[regexType]:
+        content.append(
             (
-                re.compile(lossRegex['regex']),
+                re.compile(contentRegex['regex']),
                 lambda text: re.sub(
-                    lossRegex['normalize'],
-                    lossRegex['output'],
+                    contentRegex['normalize'],
+                    contentRegex['output'],
                     text
                 )
             )
         )
 
-    foundPurchases = [] 
-    for textContent in purchases:
-        for regex in losses:
+    foundOutput = [] 
+
+    for textContent in rawContent:
+        for regex in content:
             pattern, normalizer = regex
 
             cleanedText = normalizer(textContent)   
@@ -72,9 +84,10 @@ def pullLosses(inputPDFs):
             found = pattern.findall(cleanedText)
 
             for match in found:
-                foundPurchases.append(match)
+                foundOutput.append(match)
 
-    return foundPurchases
+    return foundOutput
+
 
 def categorisePurchases(purchasesArray):
     from LLM import RunLLM
@@ -105,5 +118,3 @@ def groupPurchases(inputArray):
         categories[purchase.category] += float(purchase.value)
 
     return categories
-
-if __name__ == "__main__": main() 

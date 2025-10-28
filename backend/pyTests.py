@@ -1,10 +1,11 @@
-import ParsePDFs
+import PullingData
 import MiscMethods
 import LLM
+import Main
 
 # LLM.pullFromDatabase()
-# LLM.TrainModel()
+# LLM.TrainModelLosses()
 # LLM.ClearLLM()
 # LLM.RunLLM()
 
-ParsePDFs.main()
+Main.main()

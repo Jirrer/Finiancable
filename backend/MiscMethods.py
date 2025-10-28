@@ -1,4 +1,7 @@
+import os, json
 from datetime import datetime
+from pypdf import PdfReader
+
 
 def isDate(string: str):
     formats = ["%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
@@ -16,3 +19,6 @@ def isFloat(string: str):
         return '.' in string
     except ValueError:
         return False
+    
+
+    
