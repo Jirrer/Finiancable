@@ -13,6 +13,31 @@ load_dotenv()
 with open(os.getenv('DATA_LOCATION'), 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
 
+def calcDiff(losses: dict, gains: float) -> dict:
+    output = {"Profit/Loss": gains - getTotalLoss(losses), "Most Expensive Cost": getMostExpensive(losses)}
+
+    return output
+
+
+def getTotalLoss(losses: dict):
+    output = 0.0
+
+    for value in losses.values():
+        output += value
+    
+    return output
+
+def getMostExpensive(losses):
+    category = None
+    price = min(losses.values())
+
+    for key, value in losses.items():
+        if value > price: 
+            category = key
+            price = value
+
+    return category
+
 def pullLosses() -> dict:
     rawLosses = pullData('losses')
     purchases = pullContent(rawLosses, 'lossess_regex')
@@ -21,7 +46,7 @@ def pullLosses() -> dict:
 
     return categoriesDict
 
-def pullGains() -> dict:
+def pullGains() -> float:
     rawGains = pullData('gains')
     gains = pullContent(rawGains, 'gains_regex')
     profit = getProfit(gains)
@@ -33,6 +58,7 @@ def getProfit(gainsInput):
 
     for gain in gainsInput:
         processedGain = gain.replace('$','')
+        processedGain = processedGain.replace(',','')
         processedGain = processedGain.split(' ')
         
         for x in processedGain:
