@@ -22,14 +22,23 @@ def pullLosses() -> dict:
     return categoriesDict
 
 def pullGains() -> dict:
-    rawGains = pullData('losses')
-    purchases = pullContent(rawGains, 'gains_regex')
-    finalPurchases = categorisePurchases(purchases)
-    categoriesDict = groupPurchases(finalPurchases)
+    rawGains = pullData('gains')
+    gains = pullContent(rawGains, 'gains_regex')
+    profit = getProfit(gains)
 
-    print(categoriesDict)
+    return profit
 
-    return categoriesDict
+def getProfit(gainsInput):
+    total = 0.0
+
+    for gain in gainsInput:
+        processedGain = gain.replace('$','')
+        processedGain = processedGain.split(' ')
+        
+        for x in processedGain:
+            if isFloat(x): total += float(x)
+    
+    return total
 
 def pullData(parseType: Literal['losses', 'gains', 'training']):
     if parseType == 'losses': folderPath = os.getenv('LOSS_PDF_LOCATION')
