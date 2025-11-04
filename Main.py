@@ -1,23 +1,62 @@
 import PullingData
 from nicegui import ui
+from uuid import uuid4
+
 
 def root():
-    ui.sub_pages({
-        '/': table_page,
-        '/map/{lat}/{lon}': map_page,
-    }).classes('w-full')
+    with ui.row().classes('w-full m-0 p-0 gap-0 rowBackground'):
+        ui.link('Charts', '/').classes('pageButton')
+        ui.link('Log', '/other').classes('pageButton')
 
-def table_page():
-    ui.table(rows=[
-        {'name': 'New York', 'lat': 40.7119, 'lon': -74.0027},
-        {'name': 'London', 'lat': 51.5074, 'lon': -0.1278},
-        {'name': 'Tokyo', 'lat': 35.6863, 'lon': 139.7722},
-    ]).on('row-click', lambda e: ui.navigate.to(f'/map/{e.args[1]["lat"]}/{e.args[1]["lon"]}'))
+    ui.separator()
+    ui.sub_pages({'/': chartsPage, '/other': logPage})
 
-def map_page(lat: float, lon: float):
-    ui.leaflet(center=(lat, lon), zoom=10)
-    ui.link('Back to table', '/')
+    ui.add_css('''      
+    .rowBackground {
+        background-color: lightblue;  /* change to any color or use an image */
+        width: 100%;
+        padding: 0;                   /* optional */
+        margin: 0;                    /* optional */
+        display: flex;                /* ensures children align properly */
+        box-sizing: border-box;
+    }
+    .pageButton {
+        margin: 0 !important;       
+        padding: 0 !important;    
+        flex: 1;                   
+        text-align: center;   
+        font-family: Arial, sans-serif;
+        font-size: 1.2rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: black;
+        background-color: red;
+        display: flex;               
+        justify-content: center;
+        align-items: center;
+        height: 10vh;
+        box-sizing: border-box;     
+    }
+               
+    .pageButton:hover {
+        background-color: #0056b3;
+    }
+            
 
-ui.run(root)
+    
+''')
 
 
+def chartsPage():
+    ui.label("test")
+
+
+def logPage():
+    ui.label("log page")
+
+
+    
+
+
+
+ui.run(root, native=True)
