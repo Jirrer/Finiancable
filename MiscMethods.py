@@ -19,6 +19,12 @@ def isFloat(string: str):
         return '.' in string
     except ValueError:
         return False
-    
+
+def getThisMonth() -> str:
+    now = datetime.now()
+    month = now.month  
+    year = now.year 
+
+    return (f'{month}/{year}')
 
     
