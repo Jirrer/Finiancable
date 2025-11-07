@@ -1,12 +1,16 @@
 import PullingData, os
 from nicegui import events, ui
 from uuid import uuid4
+from MiscMethods import labelToDate
 
 # To-Do: add a way to select the month
 
-
+# File Paths
 UPLOAD_LOSS_FOLDER = os.path.join(os.getcwd(), 'loss_pdfs')
 UPLOAD_GAINS_FOLDER = os.path.join(os.getcwd(), 'gain_pdfs')
+
+# Global Vars
+state = {'selected_date': None}
 
 def root():
     with ui.row().classes('w-full m-0 p-0 gap-0 rowBackground'):
@@ -55,6 +59,9 @@ def chartsPage():
 
 
 def logPage():
+    ui.date(value='2023-01-01', on_change=lambda e: chosenDate.set_text(e.value))
+    chosenDate = ui.label()
+
     with ui.row():
         with ui.column():
             ui.label("Loss Input")
@@ -63,6 +70,8 @@ def logPage():
         with ui.column():
             ui.label("Gains Input")
             ui.upload(on_upload=handle_gains_upload).classes('max-w-full')
+
+    state['selected_date'] = chosenDate
 
     ui.button("Generate Report", on_click=logData)
 
@@ -85,14 +94,18 @@ async def handle_gains_upload(e: events.UploadEventArguments):
     ui.notify(f'File saved at: {save_path}')
 
 def logData():
+    if not state['selected_date'].text:
+        print("Error - select date")
+        return 
+    
     ui.run_javascript('location.reload()')
 
     print("Running Report...")
 
-    if PullingData.runMonthlyReport(): print("Data Added")
+    if PullingData.runMonthlyReport(labelToDate(state['selected_date'].text)): print("Data Added")
 
     if PullingData.clearPdfFolders(): print("PDFs removed")
-
+    
     print("Finished Report")
 
 

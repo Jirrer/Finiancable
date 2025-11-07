@@ -27,4 +27,8 @@ def getThisMonth() -> str:
 
     return (f'{month}/{year}')
 
-    
+def labelToDate(label: str) -> str:
+    year = label[0:4]
+    month = label[5:7]
+
+    return f'{month}/{year}'

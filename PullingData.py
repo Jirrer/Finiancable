@@ -15,16 +15,16 @@ with open(os.getenv('DATA_LOCATION'), 'r', encoding='utf-8') as file:
 
 # To-Do: define what data gets pushed
 
-def runMonthlyReport():
+def runMonthlyReport(monthYear: str):
     losses = pullLosses()
 
     gains = pullGains()
 
     profit = calcDiff(losses, gains)
 
-    pushData(profit)
+    pushData(profit, monthYear)
 
-def pushData(inputData: dict):
+def pushData(inputData: dict, monthYear: str):
     filePath = os.getenv('USER_INFO_LOCATION')
 
     if os.path.exists(filePath):
@@ -36,7 +36,7 @@ def pushData(inputData: dict):
     else:
         data = []
 
-    data[getThisMonth()] = inputData
+    data[monthYear] = inputData
 
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
