@@ -1,7 +1,7 @@
 import PullingData, os
 from nicegui import events, ui
 from uuid import uuid4
-from MiscMethods import labelToDate
+from MiscMethods import labelToDate, monthToWord
 
 # To-Do: add a way to select the month
 
@@ -55,7 +55,32 @@ def root():
 
 
 def chartsPage():
-    ui.label("Charts Page")
+    # need to sort dates
+
+    year = '2025' ###################################### hard coded ####################
+
+    userData = PullingData.getUserData()
+
+    print(userData)
+    print("\n\n")
+    print(type(sorted(userData)))
+    
+    dates, values = [], []
+
+    for key, val in userData.items():
+        if key[3:] == year:
+            dates.append(monthToWord(key[0:2]))
+            values.append(val['Profit/Loss'])
+
+    ui.label(f'Profits For {year}')
+
+    with ui.row().style('width: 90vw; height: 50vh; margin: 0; padding: 0;'):
+        ui.echart({
+            'xAxis': {'type': 'category', 'data': dates},
+            'yAxis': {'axisLabel': {':formatter': 'value => "$" + value'}},
+            'series': [{'type': 'line', 'data': values}],
+        }).style('width: 100%; height: 100%;')
+
 
 
 def logPage():

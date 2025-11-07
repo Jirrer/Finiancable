@@ -15,6 +15,10 @@ with open(os.getenv('DATA_LOCATION'), 'r', encoding='utf-8') as file:
 
 # To-Do: define what data gets pushed
 
+def getUserData():
+    with open(os.getenv('USER_INFO_LOCATION'), 'r', encoding='utf-8') as file:
+        return json.load(file)
+
 def runMonthlyReport(monthYear: str):
     losses = pullLosses()
 
