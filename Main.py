@@ -55,36 +55,46 @@ def root():
 
 
 def chartsPage():
-    # need to sort dates
+    ui.date(value='2025-01-01', on_change=lambda e: getChart(e.value))
+    
+    yearData = ui.label()
 
-    year = '2025' ###################################### hard coded ####################
+    with ui.row().style('width: 90vw; height: 50vh; margin: 0; padding: 0;'):
+        chart = ui.echart({
+            'xAxis': {'type': 'category', 'data': []},
+            'yAxis': {'axisLabel': {':formatter': 'value => "$" + value'}},
+            'series': [{'type': 'line', 'data': []}],
+        }).style('width: 100%; height: 100%;')
 
+    def getChart(yearInput: str):
+        year = yearInput[:4]
+        yearData.set_text(f'Profits For {year}')
+
+        dates, values = getChartValue(yearInput)
+
+        chart.options['xAxis']['data'] = dates
+        chart.options['series'][0]['data'] = values
+        chart.update()
+
+def getChartValue(yearData: str):
+    year = yearData[:4]
     userData = PullingData.getUserData()
 
-    print(userData)
-    print("\n\n")
-    print(type(sorted(userData)))
-    
     dates, values = [], []
-
     for key, val in userData.items():
         if key[3:] == year:
             dates.append(monthToWord(key[0:2]))
             values.append(val['Profit/Loss'])
 
-    ui.label(f'Profits For {year}')
+    return dates, values
 
-    with ui.row().style('width: 90vw; height: 50vh; margin: 0; padding: 0;'):
-        ui.echart({
-            'xAxis': {'type': 'category', 'data': dates},
-            'yAxis': {'axisLabel': {':formatter': 'value => "$" + value'}},
-            'series': [{'type': 'line', 'data': values}],
-        }).style('width: 100%; height: 100%;')
+    
 
+    
 
 
 def logPage():
-    ui.date(value='2023-01-01', on_change=lambda e: chosenDate.set_text(e.value))
+    ui.date(value='2025-01-01', on_change=lambda e: chosenDate.set_text(e.value))
     chosenDate = ui.label()
 
     with ui.row():
