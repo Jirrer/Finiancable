@@ -32,3 +32,21 @@ def labelToDate(label: str) -> str:
     month = label[5:7]
 
     return f'{month}/{year}'
+
+def monthToWord(month: str):
+    relation = {
+        '01': 'Jan',
+        '02': 'Feb',
+        '03': 'Mar',
+        '04': 'Apr',
+        '05': 'May',
+        '06': 'Jun',
+        '07': 'Jul',
+        '08': 'Aug',
+        '09': 'Sep',
+        '10': 'Oct',
+        '11': 'Nov',
+        '12': 'Dev'  
+    }
+
+    return relation[month]
