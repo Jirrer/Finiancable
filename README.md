@@ -1,3 +1,9 @@
+## Using Finianceable
+* Install the newest release (finianceable.zip)
+* Extract files and cd into the directory
+* run 'env\Scripts\activate.bat'
+* run 'python main.py'
+
 ## Definition
 
 
