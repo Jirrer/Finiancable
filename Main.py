@@ -3,8 +3,6 @@ from nicegui import events, ui
 from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
 
-# To-Do: add a way to select the month
-
 # File Paths
 UPLOAD_LOSS_FOLDER = os.path.join(os.getcwd(), 'loss_pdfs')
 UPLOAD_GAINS_FOLDER = os.path.join(os.getcwd(), 'gain_pdfs')
@@ -67,14 +65,15 @@ def chartsPage():
         }).style('width: 100%; height: 100%;')
 
     def getChart(yearInput: str):
-        year = yearInput[:4]
-        yearData.set_text(f'Profits For {year}')
+        if yearInput:
+            year = yearInput[:4]
+            yearData.set_text(f'Profits For {year}')
 
-        dates, values = getChartValue(yearInput)
+            dates, values = getChartValue(yearInput)
 
-        chart.options['xAxis']['data'] = dates
-        chart.options['series'][0]['data'] = values
-        chart.update()
+            chart.options['xAxis']['data'] = dates
+            chart.options['series'][0]['data'] = values
+            chart.update()
 
 def getChartValue(yearData: str):
     year = yearData[:4]
@@ -87,11 +86,6 @@ def getChartValue(yearData: str):
             values.append(val['Profit/Loss'])
 
     return dates, values
-
-    
-
-    
-
 
 def logPage():
     ui.date(value='2025-01-01', on_change=lambda e: chosenDate.set_text(e.value))
@@ -142,6 +136,5 @@ def logData():
     if PullingData.clearPdfFolders(): print("PDFs removed")
     
     print("Finished Report")
-
 
 ui.run(root, native=True)

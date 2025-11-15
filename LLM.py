@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# refactor to allow training a model on gains
-
 def RunLLM(strings: list) -> list:
     vectorizer = joblib.load(os.getenv('VECTORIZER_LOCATION'))
     clf = joblib.load(os.getenv('CLASSIFIER_LOCATION'))
@@ -98,8 +96,6 @@ def ClearLLM():
         curser.execute("VACUUM")
 
         connection.close()
-
-        TrainLLM(([], []))
 
         print("Model Reset.")
     
