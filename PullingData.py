@@ -1,4 +1,4 @@
-import re, os, json
+import re, os, json, io
 from Classes import Purchase
 from MiscMethods import isDate, isFloat, getThisMonth
 from pypdf import PdfReader
@@ -14,6 +14,18 @@ with open(os.getenv('DATA_LOCATION'), 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
 
 # To-Do: define what data gets pushed
+
+async def pullRawData(rawInput):
+    data = await rawInput.read()
+
+    reader = PdfReader(io.BytesIO(data))
+
+    text = ""
+
+    for page in reader.pages:
+        text += page.extract_text() or ""
+
+    return text
 
 def getUserData():
     with open(os.getenv('USER_INFO_LOCATION'), 'r', encoding='utf-8') as file:

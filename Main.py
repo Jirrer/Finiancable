@@ -13,10 +13,11 @@ state = {'selected_date': None}
 def root():
     with ui.row().classes('w-full m-0 p-0 gap-0 rowBackground'):
         ui.link('Charts', '/').classes('pageButton')
-        ui.link('Log', '/other').classes('pageButton')
+        ui.link('Log', '/log').classes('pageButton')
+        ui.link('settings', '/settings').classes('pageButton')
 
     ui.separator()
-    ui.sub_pages({'/': chartsPage, '/other': logPage})
+    ui.sub_pages({'/': chartsPage, '/log': logPage, '/settings': settingsPage})
 
     ui.add_css('''      
     .rowBackground {
@@ -50,6 +51,24 @@ def root():
     }
              
 ''')
+    
+def settingsPage():
+    # contentLabel = ui.label()
+
+    with ui.row():
+        with ui.column():
+            ui.label("input pdf")
+            ui.upload(on_upload=getContent)
+        
+        with ui.column():
+            ui.label("enter regex")
+
+async def getContent(e: events.UploadEventArguments):
+    file = e.file
+
+    text = await PullingData.pullRawData(file)
+
+    ui.label(text)
 
 
 def chartsPage():
