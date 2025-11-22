@@ -3,8 +3,6 @@ from nicegui import events, ui
 from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
 
-# To-Do: add a way to select the month
-
 # File Paths
 UPLOAD_LOSS_FOLDER = os.path.join(os.getcwd(), 'loss_pdfs')
 UPLOAD_GAINS_FOLDER = os.path.join(os.getcwd(), 'gain_pdfs')
@@ -15,10 +13,11 @@ state = {'selected_date': None}
 def root():
     with ui.row().classes('w-full m-0 p-0 gap-0 rowBackground'):
         ui.link('Charts', '/').classes('pageButton')
-        ui.link('Log', '/other').classes('pageButton')
+        ui.link('Log', '/log').classes('pageButton')
+        ui.link('settings', '/settings').classes('pageButton')
 
     ui.separator()
-    ui.sub_pages({'/': chartsPage, '/other': logPage})
+    ui.sub_pages({'/': chartsPage, '/log': logPage, '/settings': settingsPage})
 
     ui.add_css('''      
     .rowBackground {
@@ -52,6 +51,24 @@ def root():
     }
              
 ''')
+    
+def settingsPage():
+    # contentLabel = ui.label()
+
+    with ui.row():
+        with ui.column():
+            ui.label("input pdf")
+            ui.upload(on_upload=getContent)
+        
+        with ui.column():
+            ui.label("enter regex")
+
+async def getContent(e: events.UploadEventArguments):
+    file = e.file
+
+    text = await PullingData.pullRawData(file)
+
+    ui.label(text)
 
 
 def chartsPage():
@@ -67,14 +84,15 @@ def chartsPage():
         }).style('width: 100%; height: 100%;')
 
     def getChart(yearInput: str):
-        year = yearInput[:4]
-        yearData.set_text(f'Profits For {year}')
+        if yearInput:
+            year = yearInput[:4]
+            yearData.set_text(f'Profits For {year}')
 
-        dates, values = getChartValue(yearInput)
+            dates, values = getChartValue(yearInput)
 
-        chart.options['xAxis']['data'] = dates
-        chart.options['series'][0]['data'] = values
-        chart.update()
+            chart.options['xAxis']['data'] = dates
+            chart.options['series'][0]['data'] = values
+            chart.update()
 
 def getChartValue(yearData: str):
     year = yearData[:4]
@@ -87,11 +105,6 @@ def getChartValue(yearData: str):
             values.append(val['Profit/Loss'])
 
     return dates, values
-
-    
-
-    
-
 
 def logPage():
     ui.date(value='2025-01-01', on_change=lambda e: chosenDate.set_text(e.value))
@@ -142,6 +155,5 @@ def logData():
     if PullingData.clearPdfFolders(): print("PDFs removed")
     
     print("Finished Report")
-
 
 ui.run(root, native=True)

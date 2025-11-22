@@ -1,11 +1,9 @@
-import PullingData
-import MiscMethods
-import LLM
-import Main
+import ProccessingData
 
-# LLM.pullFromDatabase()
-# LLM.TrainModelLosses()
-# LLM.ClearLLM()
-# LLM.RunLLM()
+rawPurchases = ProccessingData.getRawPurchases([
+    ("fifth_third", "C:\\Users\\jrirr\Downloads\\53Checkings.CSV"),
+    ("truecc", "C:\\Users\\jrirr\Downloads\\TrueCC.csv")
+    ])
 
-Main.main()
+for x in rawPurchases:
+    print(x)
