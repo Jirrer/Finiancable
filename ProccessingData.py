@@ -1,5 +1,6 @@
 import csv, dotenv, json, os
 from Classes import Purchase
+from LLM import RunLLM
 
 dotenv.load_dotenv()
 
@@ -36,3 +37,13 @@ def getRawPurchases(csvFiles: list) -> list:
                 output.append(Purchase(rowValue, None, rowDate, rowInfo))
 
     return output
+
+def categorizePurchases(purchases: list) -> list:
+    infoStrs = [purchase.info for purchase in purchases]
+
+    strsCategories = RunLLM(infoStrs)
+
+    for index in range(len(purchases)):
+        purchases[index].category = strsCategories[index]
+
+    return purchases
