@@ -1,0 +1,22 @@
+{
+    "fifth_third": {
+        "format": ["date", "info", "check", "value"],
+        "skipped_data": [
+            
+        ]
+    },
+
+    "american_express": {
+        "format": ["date", "info", "value"],
+        "skipped_data": [
+            
+        ]
+    },
+
+    "truecc": {
+        "format": ["transaction_id","posting_date","date","transaction_type","value","check_number","reference_number","info","transaction_category","type","balance","memo","extended_description"],
+        "skipped_data": [
+            
+        ]
+    }
+}

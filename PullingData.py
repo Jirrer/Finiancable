@@ -97,6 +97,27 @@ def getMostExpensive(losses):
 
     return category
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def pullLosses() -> dict:
     rawLosses = pullData('losses')
     purchases = pullContent(rawLosses, 'lossess_regex')
