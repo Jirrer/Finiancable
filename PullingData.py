@@ -70,17 +70,6 @@ def getProfit(puchasesInput: list) -> float:
     
     return total
 
-# def priceByCategory(puchasesInput: list) -> dict:
-#     categories = {}
-
-#     for purchase in puchasesInput:
-#         if purchase.category in categories:
-#             categories[purchase.category] += float(purchase.value)
-#         else:
-#             categories[purchase.category] = float(purchase.value)
-
-#     return {"categories": categories}
-
 def pushData(report: Month_Report):
     filePath = os.getenv('USER_INFO_LOCATION')
 
@@ -109,16 +98,7 @@ def clearPdfFolders():
     files = [f for f in os.listdir(pdfLocation)]
 
     for fileLocation in files:
-        if os.path.exists(f'pdfLocation/{fileLocation}'):
-            os.remove(f'pdfLocation/{fileLocation}')
+        if os.path.exists(f'{pdfLocation}\\{fileLocation}'):
+            os.remove(f'{pdfLocation}\\{fileLocation}')
 
-# def groupPurchases(inputArray):
-#     categories = {}
-
-#     for category in jsonData["categories"]:
-#         categories[category] = 0.0
-    
-#     for purchase in inputArray:
-#         categories[purchase.category] += float(purchase.value)
-
-#     return categories
+    return True

@@ -23,4 +23,4 @@ if __name__ == "__main__":
 
     # printPurchases(TEST_categorizePurchases())
 
-    PullingData.runMonthlyReport("12/2025")
+    # PullingData.runMonthlyReport("12/2025")

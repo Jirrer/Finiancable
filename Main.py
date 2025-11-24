@@ -3,6 +3,9 @@ from nicegui import events, ui
 from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
 
+# To-Do: let user choose bank (links to websites),
+# auto save the file name (bank name # current time)
+
 # File Paths
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'pdfs')
 
@@ -82,18 +85,36 @@ def chartsPage():
             'series': [{'type': 'line', 'data': []}],
         }).style('width: 100%; height: 100%;')
 
-    def getChart(yearInput: str):
+    def getChart(yearInput: str): # AI slop
         if yearInput:
             year = yearInput[:4]
             yearData.set_text(f'Profits For {year}')
 
             dates, values = getChartValue(yearInput)
 
+            # ----------------------------
+            # SORT MONTHS IN PROPER ORDER
+            # ----------------------------
+            month_order = {
+                'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4,
+                'may': 5, 'jun': 6, 'jul': 7, 'aug': 8,
+                'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+            }
+
+            combined = list(zip(dates, values))
+
+            combined.sort(key=lambda x: month_order[x[0][:3].lower()])
+
+            # Unzip back into sorted lists
+            dates, values = zip(*combined)
+            dates, values = list(dates), list(values)
+            # ----------------------------
+
             chart.options['xAxis']['data'] = dates
             chart.options['series'][0]['data'] = values
             chart.update()
 
-def getChartValue(yearData: str):
+def getChartValue(yearData: str):# To-Do: organize chart by month
     year = yearData[:4]
     userData = PullingData.getUserData()
 

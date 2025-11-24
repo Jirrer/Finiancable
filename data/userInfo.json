@@ -1,29 +1,14 @@
 {
-    "11/2025": {
-        "Profit/Loss": 0.0,
-        "Most Expensive Cost": null
-    },
-    "01/2023": {
-        "Profit/Loss": 0.0,
-        "Most Expensive Cost": null
-    },
-    "08/2023": {
-        "Profit/Loss": 0.0,
-        "Most Expensive Cost": null
+    "06/2025": {
+        "Profit/Loss": 1215.5299999999997
     },
     "09/2025": {
-        "Profit/Loss": -533.94,
-        "Most Expensive Cost": "shopping"
+        "Profit/Loss": -3395.0299999999997
+    },
+    "08/2025": {
+        "Profit/Loss": 262.43999999999994
     },
     "10/2025": {
-        "Profit/Loss": -124.21,
-        "Most Expensive Cost": "shopping"
-    },
-    "07/2025": {
-        "Profit/Loss": 342.21,
-        "Most Expensive Cost": "shopping"
-    },
-    "12/2025": {
-        "Profit/Loss": 3141.9400000000023
+        "Profit/Loss": 1165.9599999999994
     }
 }
