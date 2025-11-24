@@ -4,3 +4,8 @@ class Purchase:
         self.category = purchaseType
         self.date = purchaseDate
         self.info = purchaseInfo
+
+class Month_Report:
+    def __init__(self, date):
+        self.date = date
+        self.profit_loss = None

@@ -4,6 +4,7 @@ from pypdf import PdfReader
 from dotenv import load_dotenv
 from typing import Literal
 from ProccessingData import getRawPurchases, categorizePurchases
+from Classes import Month_Report
 
 load_dotenv()
 
@@ -32,11 +33,11 @@ def runMonthlyReport(monthYear: str):
     rawPurchases = getRawPurchases(pdfs)
     categorizedPurchases = categorizePurchases(rawPurchases)
 
-    print(categorizedPurchases)
+    monthReport = Month_Report(monthYear)
 
-    # profit = -1
+    monthReport.profit_loss = getProfit(categorizedPurchases)
 
-    # pushData(profit, monthYear)
+    pushData(monthReport)
 
 def getPreparedPdfs() -> list:
     output = []
@@ -61,7 +62,26 @@ def pullBankName(fileName: str) -> str:
 
     return "Error pulling bank name"
 
-def pushData(inputData: dict, monthYear: str):
+def getProfit(puchasesInput: list) -> float:
+    total = 0.0
+
+    for purchase in puchasesInput:
+        if isFloat(purchase.value): total += float(purchase.value)
+    
+    return total
+
+# def priceByCategory(puchasesInput: list) -> dict:
+#     categories = {}
+
+#     for purchase in puchasesInput:
+#         if purchase.category in categories:
+#             categories[purchase.category] += float(purchase.value)
+#         else:
+#             categories[purchase.category] = float(purchase.value)
+
+#     return {"categories": categories}
+
+def pushData(report: Month_Report):
     filePath = os.getenv('USER_INFO_LOCATION')
 
     if os.path.exists(filePath):
@@ -73,7 +93,10 @@ def pushData(inputData: dict, monthYear: str):
     else:
         data = []
 
-    data[monthYear] = inputData
+    newMonth = {}
+    newMonth["Profit/Loss"] = report.profit_loss
+
+    data[report.date] = newMonth
 
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
@@ -89,52 +112,13 @@ def clearPdfFolders():
         if os.path.exists(f'pdfLocation/{fileLocation}'):
             os.remove(f'pdfLocation/{fileLocation}')
 
-def calcDiff(losses: dict, gains: float) -> dict:
-    output = {"Profit/Loss": gains - getTotalLoss(losses), "Most Expensive Cost": getMostExpensive(losses)}
+# def groupPurchases(inputArray):
+#     categories = {}
 
-    return output
-
-
-def getTotalLoss(losses: dict):
-    output = 0.0
-
-    for value in losses.values():
-        output += value
+#     for category in jsonData["categories"]:
+#         categories[category] = 0.0
     
-    return output
+#     for purchase in inputArray:
+#         categories[purchase.category] += float(purchase.value)
 
-def getMostExpensive(losses):
-    category = None
-    price = min(losses.values())
-
-    for key, value in losses.items():
-        if value > price: 
-            category = key
-            price = value
-
-    return category
-
-def getProfit(gainsInput):
-    total = 0.0
-
-    for gain in gainsInput:
-        processedGain = gain.replace('$','')
-        processedGain = processedGain.replace(',','')
-        processedGain = processedGain.split(' ')
-        
-        for x in processedGain:
-            if isFloat(x): total += float(x)
-    
-    return total
-
-
-def groupPurchases(inputArray):
-    categories = {}
-
-    for category in jsonData["categories"]:
-        categories[category] = 0.0
-    
-    for purchase in inputArray:
-        categories[purchase.category] += float(purchase.value)
-
-    return categories
+#     return categories
