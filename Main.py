@@ -3,9 +3,11 @@ from nicegui import events, ui
 from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
 
+# To-Do: let user choose bank (links to websites),
+# auto save the file name (bank name # current time)
+
 # File Paths
-UPLOAD_LOSS_FOLDER = os.path.join(os.getcwd(), 'loss_pdfs')
-UPLOAD_GAINS_FOLDER = os.path.join(os.getcwd(), 'gain_pdfs')
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'pdfs')
 
 # Global Vars
 state = {'selected_date': None}
@@ -83,18 +85,36 @@ def chartsPage():
             'series': [{'type': 'line', 'data': []}],
         }).style('width: 100%; height: 100%;')
 
-    def getChart(yearInput: str):
+    def getChart(yearInput: str): # AI slop
         if yearInput:
             year = yearInput[:4]
             yearData.set_text(f'Profits For {year}')
 
             dates, values = getChartValue(yearInput)
 
+            # ----------------------------
+            # SORT MONTHS IN PROPER ORDER
+            # ----------------------------
+            month_order = {
+                'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4,
+                'may': 5, 'jun': 6, 'jul': 7, 'aug': 8,
+                'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+            }
+
+            combined = list(zip(dates, values))
+
+            combined.sort(key=lambda x: month_order[x[0][:3].lower()])
+
+            # Unzip back into sorted lists
+            dates, values = zip(*combined)
+            dates, values = list(dates), list(values)
+            # ----------------------------
+
             chart.options['xAxis']['data'] = dates
             chart.options['series'][0]['data'] = values
             chart.update()
 
-def getChartValue(yearData: str):
+def getChartValue(yearData: str):# To-Do: organize chart by month
     year = yearData[:4]
     userData = PullingData.getUserData()
 
@@ -113,29 +133,18 @@ def logPage():
     with ui.row():
         with ui.column():
             ui.label("Loss Input")
-            ui.upload(on_upload=handle_loss_upload).classes('max-w-full')
+            ui.upload(on_upload=handle_file_upload).classes('max-w-full')
 
-        with ui.column():
-            ui.label("Gains Input")
-            ui.upload(on_upload=handle_gains_upload).classes('max-w-full')
+        
 
     state['selected_date'] = chosenDate
 
     ui.button("Generate Report", on_click=logData)
 
-async def handle_loss_upload(e: events.UploadEventArguments):
+async def handle_file_upload(e: events.UploadEventArguments):
     uploaded_file = e.file
 
-    save_path = os.path.join(UPLOAD_LOSS_FOLDER, uploaded_file.name)
-
-    await uploaded_file.save(save_path) 
-
-    ui.notify(f'File saved at: {save_path}')
-
-async def handle_gains_upload(e: events.UploadEventArguments):
-    uploaded_file = e.file
-
-    save_path = os.path.join(UPLOAD_GAINS_FOLDER, uploaded_file.name)
+    save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
 
     await uploaded_file.save(save_path) 
 

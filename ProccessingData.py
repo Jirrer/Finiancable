@@ -1,12 +1,13 @@
-import csv, dotenv, json, os
+import csv, dotenv, json, os, re
 from Classes import Purchase
 from LLM import RunLLM
 
 dotenv.load_dotenv()
 
+#To-Do: decide if i want to be able to skip payments
+
 with open(os.getenv('SUPPORTED_BANKS'), 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
-
 
 def getRawPurchases(csvFiles: list) -> list:
     output = []
@@ -21,6 +22,8 @@ def getRawPurchases(csvFiles: list) -> list:
 
             bankFormat = jsonData[bank]['format']
             bannedPayments = jsonData[bank]['skipped_data']
+
+            reversePayents = jsonData[bank]['reverseValues']
             
             for index in range(len(bankFormat)):
                 if bankFormat[index] == 'date': dateIndex = index
@@ -30,13 +33,24 @@ def getRawPurchases(csvFiles: list) -> list:
             for row in reader:
                 rowDate = row[dateIndex]
                 rowInfo = row[infoIndex]
-                rowValue = row[valueIndex]
 
-                if rowInfo in bannedPayments: continue
+                if (reversePayents):
+                    rowValue = f'-{row[valueIndex]}'
+                else:
+                    rowValue = row[valueIndex]
 
-                output.append(Purchase(rowValue, None, rowDate, rowInfo))
+                if not isBannedPayment(bannedPayments, rowInfo):
+                    output.append(Purchase(rowValue, None, rowDate, rowInfo))
 
     return output
+
+def isBannedPayment(paymentList: list, paymentInfo: str):
+    for search in paymentList:
+        match = re.search(search, paymentInfo)
+
+        if match: return True
+
+    return False
 
 def categorizePurchases(purchases: list) -> list:
     infoStrs = [purchase.info for purchase in purchases]
