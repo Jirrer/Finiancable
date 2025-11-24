@@ -4,8 +4,7 @@ from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
 
 # File Paths
-UPLOAD_LOSS_FOLDER = os.path.join(os.getcwd(), 'loss_pdfs')
-UPLOAD_GAINS_FOLDER = os.path.join(os.getcwd(), 'gain_pdfs')
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'pdfs')
 
 # Global Vars
 state = {'selected_date': None}
@@ -113,29 +112,18 @@ def logPage():
     with ui.row():
         with ui.column():
             ui.label("Loss Input")
-            ui.upload(on_upload=handle_loss_upload).classes('max-w-full')
+            ui.upload(on_upload=handle_file_upload).classes('max-w-full')
 
-        with ui.column():
-            ui.label("Gains Input")
-            ui.upload(on_upload=handle_gains_upload).classes('max-w-full')
+        
 
     state['selected_date'] = chosenDate
 
     ui.button("Generate Report", on_click=logData)
 
-async def handle_loss_upload(e: events.UploadEventArguments):
+async def handle_file_upload(e: events.UploadEventArguments):
     uploaded_file = e.file
 
-    save_path = os.path.join(UPLOAD_LOSS_FOLDER, uploaded_file.name)
-
-    await uploaded_file.save(save_path) 
-
-    ui.notify(f'File saved at: {save_path}')
-
-async def handle_gains_upload(e: events.UploadEventArguments):
-    uploaded_file = e.file
-
-    save_path = os.path.join(UPLOAD_GAINS_FOLDER, uploaded_file.name)
+    save_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
 
     await uploaded_file.save(save_path) 
 

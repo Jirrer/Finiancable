@@ -2,7 +2,7 @@ import joblib, os, sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from typing import List, Tuple
-from PullingData import pullData, pullContent
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,17 +13,17 @@ def RunLLM(strings: list) -> list:
 
     return clf.predict(vectorizer.transform(strings))
     
-def TrainModelLosses():
-    rawData = pullData('training')
-    losses = pullContent(rawData, 'lossess_regex')
+# def TrainModelLosses():
+#     rawData = pullData('training')
+#     losses = pullContent(rawData, 'lossess_regex')
 
-    texts, labels = [], []
+#     texts, labels = [], []
 
-    for purchase in losses:
-        texts.append(purchase[2])
-        labels.append(input(f"{purchase}: "))
+#     for purchase in losses:
+#         texts.append(purchase[2])
+#         labels.append(input(f"{purchase}: "))
 
-    TrainLLM(texts, labels)
+#     TrainLLM(texts, labels)
 
 def TrainLLM(newTexts, newLabels):
     connection = sqlite3.connect(os.getenv('DATABASE_LOCATION'))
