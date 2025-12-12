@@ -44,8 +44,6 @@ def main(vectorizer, clf, monthYear: str):
 
     pushData(monthReport)
 
-
-
 def getFileLocations() -> list:
     output = []
 
@@ -106,7 +104,6 @@ def getRawPurchases(csvFiles: list):
 
     return (losses, gains)
 
-
 def categorizePurchases(purchases: list, clf, vectorizer) -> list:
     infoStrs = [purchase.info for purchase in purchases]
 
@@ -133,7 +130,6 @@ def getGain(purchasesInput: list):
             total += float(purchase.value)
 
     return total
-
 
 def isFloat(string: str):
     try:
@@ -172,8 +168,8 @@ def pushData(report: Month_Report):
     return True
     
 if __name__ == "__main__":
-    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Pulled vectorizer.")
+    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Loaded vectorizer.")
 
-    clf = joblib.load('data\\classifier.joblib'); print("Pulled clf.")
+    clf = joblib.load('data\\classifier.joblib'); print("Loaded clf.")
 
-    main(vectorizer, clf, "12/2025"); print("Ran Report")
+    main(vectorizer, clf, "12/2025"); print("Ran Report.")
