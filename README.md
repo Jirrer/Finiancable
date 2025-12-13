@@ -1,10 +1,10 @@
 
 
-### GenerateData.py
+## GenerateData.py
 
 
 
-### TrainData.py
+## TrainData.py
 
 ## CreateTrainingData.py
 This file's goal is to create a blueprint for creating or adding training data. It pulls
