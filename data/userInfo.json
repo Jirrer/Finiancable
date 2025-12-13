@@ -16,8 +16,14 @@
         "Gains": 3849.64,
         "Profit/Loss": 2116.2299999999996,
         "Categories": {
-            "food_drink": -1717.5200000000002,
-            "shopping": -15.89
+            "food_drink": -355.21999999999997,
+            "subscription": -5.99,
+            "gas": -36.89,
+            "cash": -248.5,
+            "shopping": -15.89,
+            "misc": -32.08,
+            "NULL": -600.0,
+            "loan": -438.84
         }
     }
 }

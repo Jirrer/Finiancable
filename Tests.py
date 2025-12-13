@@ -1,26 +1,14 @@
-# import ProccessingData
-import PullingData
+import joblib
+from GenerateData import getRawPurchases, getFileLocations, categorizePurchases
 
-# def TEST_getRawPurchases():
-#     rawPurchases = ProccessingData.getRawPurchases([
-#         ("fifth_third", "C:\\Users\\jrirr\Downloads\\53Checkings.CSV"),
-#         ("truecc", "C:\\Users\\jrirr\Downloads\\TrueCC.csv")
-#         ])
+def testModel():
+    rawPurchases = getRawPurchases(getFileLocations())[0]
+    catPurchases = categorizePurchases(rawPurchases, joblib.load('data\\classifier.joblib'), joblib.load('data\\vectorizer.joblib'))
+
+    max_len = max(len(p.category) for p in catPurchases)
+
+    print("-" * max_len + "-|-" + "-" * 100)
+
+    for purchase in catPurchases:
+        print(f"{purchase.category:<{max_len}} | {purchase.info}")
     
-#     return rawPurchases
-
-# def TEST_categorizePurchases():
-#     return ProccessingData.categorizePurchases(TEST_getRawPurchases())
-
-# def printPurchases(purchasesInput: list) -> None:
-#     for purchase in purchasesInput:
-#         print(f"Value: {purchase.value}, Category: {purchase.category}, Date: {purchase.date}, Info: {purchase.info}")
-
-
-if __name__ == "__main__":
-    # TEST_getRawPurchases()
-    # TEST_categorizePurchases()
-
-    # printPurchases(TEST_categorizePurchases())
-
-    # PullingData.runMonthlyReport("12/2025")

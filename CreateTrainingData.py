@@ -12,7 +12,7 @@ def createData() -> list:
     rawPurchases = getRawPurchases(getFileLocations())[0]
 
     for purchase in rawPurchases:
-        output.append(f",{purchase.info}")
+        output.append(f"ADD_LABEL,{purchase.info}")
 
     return output
 

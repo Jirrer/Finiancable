@@ -79,7 +79,6 @@ def getRawPurchases(csvFiles: list):
             dateIndex, infoIndex, valueIndex = None, None, None
 
             bankFormat = jsonData[bank]['format']
-            bannedPayments = jsonData[bank]['skipped_data']
 
             reversePayents = jsonData[bank]['reverseValues']
             
