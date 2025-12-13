@@ -13,18 +13,34 @@ class Purchase:
 class Month_Report:
     def __init__(self, date):
         self.date = date
+        self.loss = None
+        self.gain = None
         self.profit_loss = None
+        self.categories = {}
+
+    def updateCategories(self, purchases: list):
+        for purchase in purchases:
+            if purchase.category in self.categories:
+                self.categories[purchase.category] += float(purchase.value)
+            else:
+                self.categories[purchase.category] = float(purchase.value)
 
 def main(vectorizer, clf, monthYear: str):
     csvFileLocations = getFileLocations()
     
-    rawPurchases = getRawPurchases(csvFileLocations)
+    rawLosses, rawGains = getRawPurchases(csvFileLocations)
 
-    categorizedPurchases = categorizePurchases(rawPurchases)
+    categorizedPurchases = categorizePurchases(rawLosses, clf, vectorizer)
 
     monthReport = Month_Report(monthYear)
 
-    monthReport.profit_loss = getProfit(categorizedPurchases)
+    monthReport.loss = getLoss(categorizedPurchases)
+
+    monthReport.gain = getGain(rawGains)
+
+    monthReport.profit_loss = monthReport.gain + monthReport.loss
+
+    monthReport.updateCategories(categorizedPurchases)
 
     pushData(monthReport)
 
@@ -51,8 +67,8 @@ def pullBankName(fileName: str) -> str:
 
     return "Error pulling bank name"
 
-def getRawPurchases(csvFiles: list) -> list:
-    output = []
+def getRawPurchases(csvFiles: list):
+    losses, gains = [], []
     
     for bank, filePath in csvFiles:
         with open(filePath, 'r', newline='') as file:
@@ -63,7 +79,6 @@ def getRawPurchases(csvFiles: list) -> list:
             dateIndex, infoIndex, valueIndex = None, None, None
 
             bankFormat = jsonData[bank]['format']
-            bannedPayments = jsonData[bank]['skipped_data']
 
             reversePayents = jsonData[bank]['reverseValues']
             
@@ -81,20 +96,14 @@ def getRawPurchases(csvFiles: list) -> list:
                 else:
                     rowValue = row[valueIndex]
 
-                if not isBannedPayment(bannedPayments, rowInfo):
-                    output.append(Purchase(rowValue, None, rowDate, rowInfo))
+                if float(rowValue) < 0:
+                    losses.append(Purchase(rowValue, None, rowDate, rowInfo))
+                else:
+                    gains.append(Purchase(rowValue, None, rowDate, rowInfo))
 
-    return output
+    return (losses, gains)
 
-def isBannedPayment(paymentList: list, paymentInfo: str):
-    for search in paymentList:
-        match = re.search(search, paymentInfo)
-
-        if match: return True
-
-    return False
-
-def categorizePurchases(purchases: list) -> list:
+def categorizePurchases(purchases: list, clf, vectorizer) -> list:
     infoStrs = [purchase.info for purchase in purchases]
 
     strsCategories = clf.predict(vectorizer.transform(infoStrs))
@@ -104,12 +113,21 @@ def categorizePurchases(purchases: list) -> list:
 
     return purchases
 
-def getProfit(puchasesInput: list) -> float:
+def getLoss(puchasesInput: list) -> float:
     total = 0.0
 
     for purchase in puchasesInput:
         if isFloat(purchase.value): total += float(purchase.value)
     
+    return total
+
+def getGain(purchasesInput: list):
+    total = 0.0
+    
+    for purchase in purchasesInput:
+        if float(purchase.value) > 0:
+            total += float(purchase.value)
+
     return total
 
 def isFloat(string: str):
@@ -132,7 +150,14 @@ def pushData(report: Month_Report):
         data = []
 
     newMonth = {}
+    
+    newMonth["Losses"] = report.loss
+
+    newMonth["Gains"] = report.gain
+
     newMonth["Profit/Loss"] = report.profit_loss
+
+    newMonth["Categories"] = report.categories
 
     data[report.date] = newMonth
 
@@ -142,8 +167,8 @@ def pushData(report: Month_Report):
     return True
     
 if __name__ == "__main__":
-    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Pulled vectorizer.")
+    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Loaded vectorizer.")
 
-    clf = joblib.load('data\\classifier.joblib'); print("Pulled clf.")
+    clf = joblib.load('data\\classifier.joblib'); print("Loaded clf.")
 
-    main(vectorizer, clf, "12/2025"); print("Ran Report")
+    main(vectorizer, clf, "12/2025"); print("Ran Report.")
