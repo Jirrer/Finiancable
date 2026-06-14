@@ -386,12 +386,17 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		const labels = Object.keys(categoryTotals)
 		if (!labels.length) return null
 
-		const values = labels.map((k) => Math.abs(Number(categoryTotals[k] ?? 0)))
-		const labeledLabels = labels.map((k, i) => `${k}: $${values[i].toLocaleString()}`)
+		const sorted = labels
+			.map((k) => ({ label: k, value: Math.abs(Number(categoryTotals[k] ?? 0)) }))
+			.sort((a, b) => b.value - a.value)
+
+		const sortedLabels = sorted.map((d) => d.label)
+		const sortedValues = sorted.map((d) => d.value)
+		const labeledLabels = sortedLabels.map((k, i) => `${k}: $${sortedValues[i].toLocaleString()}`) // ← add this back
 
 		return {
-			labels: labeledLabels,
-			datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }],
+			labels: labeledLabels, // ← use labeledLabels instead of sortedLabels
+			datasets: [{ data: sortedValues, backgroundColor: colors.slice(0, sortedLabels.length), borderColor: '#fff', borderWidth: 1 }],
 		}
 	}
 
