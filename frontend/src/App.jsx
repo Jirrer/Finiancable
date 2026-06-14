@@ -387,9 +387,10 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		if (!labels.length) return null
 
 		const values = labels.map((k) => Math.abs(Number(categoryTotals[k] ?? 0)))
+		const labeledLabels = labels.map((k, i) => `${k}: $${values[i].toLocaleString()}`)
 
 		return {
-			labels,
+			labels: labeledLabels,
 			datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }],
 		}
 	}
@@ -624,7 +625,16 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 													options={{
 														responsive: true,
 														maintainAspectRatio: false,
-														plugins: { legend: { position: 'right' } },
+														plugins: { legend: 
+															{ position: 'right',
+																labels: {
+																	color: '#FFF',
+																	font: {
+																		size: 14
+																	}
+																}
+															 }
+														},
 													}}
 												/>
 											) : (
@@ -642,7 +652,16 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 													options={{
 														responsive: true,
 														maintainAspectRatio: false,
-														plugins: { legend: { position: 'right' } },
+														plugins: { legend: 
+															{ position: 'right',
+																labels: {
+																	color: '#FFF',
+																	font: {
+																		size: 14
+																	}
+																}
+															 }
+														},
 													}}
 												/>
 											) : (
@@ -670,7 +689,13 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 															},
 														},
 													},
-													plugins: { legend: { display: false } },
+													plugins: { legend: { display: false }, 
+													labels: {
+														color: '#FFF',
+														font: {
+															size: 14
+														}
+													} },
 												}}
 											/>
 										) : (
@@ -679,8 +704,7 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 									</div>
 								</div>
 							</div>
-						</>
-						
+						</>	
                         
 					)}
 
@@ -817,11 +841,11 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 							</div>
 
 							<button
-									type="button"
-									className="primary-button"
-									onClick={handleSubmit}
-									>
-									Login
+								type="button"
+								className="primary-button"
+								onClick={handleSubmit}
+								>
+								Login
 							</button>
 						</form>
 
@@ -860,18 +884,18 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 							</div>
 
 							<button
-									type="button"
-									className="primary-button"
-									onClick={async () => {
-										const resp = await register()
-										if (resp && resp.ok) {
-											setLoginError('')
-											setIsLoggedIn(true)
-											setActiveScreen('Reports')
-										}
-									}}
-									>
-									Register
+								type="button"
+								className="primary-button"
+								onClick={async () => {
+									const resp = await register()
+									if (resp && resp.ok) {
+										setLoginError('')
+										setIsLoggedIn(true)
+										setActiveScreen('Reports')
+									}
+								}}
+								>
+								Register
 							</button>
 						</form>
 
