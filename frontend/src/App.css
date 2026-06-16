@@ -81,6 +81,7 @@ a {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+
 }
 
 .user-information {
@@ -90,6 +91,12 @@ a {
     height: 5vh;
     align-items: center;
     font-size: xx-large;
+}
+
+.user-information img {
+    height: 40px;
+    display: block;  
+    color: #fff;     
 }
 
 .user-information button {
@@ -172,4 +179,14 @@ a {
 .drop-zone :hover {
     background-color: #6495ED;
     cursor: pointer;
+}
+
+/* .account-page {
+    display: flex;
+    justify-content: center;
+} */
+
+.user-info {
+    justify-self: center;
+    
 }

@@ -66,7 +66,7 @@ def findSalary(allData: list[tuple]):
     byYearMonth = {}
 
     for payment in validPayments:
-        yearMonth = payment[2][:-3]
+        yearMonth = payment[2].strftime('%Y-%m')
 
         if yearMonth in byYearMonth:
             byYearMonth[yearMonth] += payment[4]
@@ -95,7 +95,7 @@ def getEmergencyFund(allData: list[tuple]) -> tuple[float, float]:
     byYearMonth = {}
 
     for transaction in validLosses:
-        yearMonth = transaction[2][:-3]
+        yearMonth = transaction[2].strftime('%Y-%m')
 
         if yearMonth in byYearMonth:
             byYearMonth[yearMonth] += transaction[4]
