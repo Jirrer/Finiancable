@@ -20,7 +20,8 @@ function App() {
 	const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
 	const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
 	const [showLogin, setShowLogin] = useState(true)
-	
+	const [userData, setUserData] = useState(null)
+
 	const apiBaseUrl = import.meta.env.DEV
 		? import.meta.env.VITE_API_DEV_URL
 		: import.meta.env.VITE_API_PROD_URL
@@ -381,17 +382,39 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 	)
 }
 
+	const fetchUserData = async () => {
+		try {
+			const response = await fetch(`${apiBaseUrl}/get-user-data`, {
+				method: 'GET',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+			});
+
+			if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+			const data = await response.json();
+			setUserData(data.report);
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
 	function buildPieData(categoryTotals, colors) {
 		if (!categoryTotals || typeof categoryTotals !== 'object') return null
 		const labels = Object.keys(categoryTotals)
 		if (!labels.length) return null
 
-		const values = labels.map((k) => Math.abs(Number(categoryTotals[k] ?? 0)))
-		const labeledLabels = labels.map((k, i) => `${k}: $${values[i].toLocaleString()}`)
+		const sorted = labels
+			.map((k) => ({ label: k, value: Math.abs(Number(categoryTotals[k] ?? 0)) }))
+			.sort((a, b) => b.value - a.value)
+
+		const sortedLabels = sorted.map((d) => d.label)
+		const sortedValues = sorted.map((d) => d.value)
+		const labeledLabels = sortedLabels.map((k, i) => `${k}: $${sortedValues[i].toLocaleString()}`) // ← add this back
 
 		return {
-			labels: labeledLabels,
-			datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }],
+			labels: labeledLabels, // ← use labeledLabels instead of sortedLabels
+			datasets: [{ data: sortedValues, backgroundColor: colors.slice(0, sortedLabels.length), borderColor: '#fff', borderWidth: 1 }],
 		}
 	}
 
@@ -571,6 +594,13 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		}
 	}, [isLoggedIn, selectedStartMonth, selectedEndMonth, activeScreen])
 
+	useEffect(() => {
+	if (activeScreen === 'Account') {
+		fetchUserData();
+		
+	}
+	}, [activeScreen]);
+
 	if (isLoggedIn) {
 		const screenTitle = activeScreen === 'Reports' ? 'Reports' : 'Log-Data'
 
@@ -578,8 +608,10 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 			<main className="app-shell">
 				<header className="top-bar">
 					<div className='user-information'>
-                        {username}
-                        <button onClick={logOut}>Sign Out</button>
+                        <button
+							onClick={() => setActiveScreen('Account')}
+						> <img src="profile-user-account.png" alt="Search"/>
+						</button>
 					</div>
 				</header>
 			
@@ -711,6 +743,23 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 					{activeScreen === 'Log-Data' && (
 						<div>
 						<LogData apiBaseUrl={apiBaseUrl} />
+						</div>
+					)}
+
+					{activeScreen === 'Account' && (
+						<div className='account-page'>
+							<div className='user-info'>
+								{username}
+								<button onClick={logOut}>Sign Out</button>
+							</div>
+
+
+							 <div className='accountData'>Net Worth: ${Math.round(userData?.NetWorth?.Networth ?? 0).toLocaleString()}</div>
+							<div className='accountData'>Salary: ${userData?.Salary?.toLocaleString() ?? '—'}</div>
+							<div className='accountData'>
+								Emergency Fund: ${userData?.["Emergency Fund"]?.[0]?.toLocaleString() ?? '—'} – ${userData?.["Emergency Fund"]?.[1]?.toLocaleString() ?? '—'}
+							</div>
+
 						</div>
 					)}
                     </section>
