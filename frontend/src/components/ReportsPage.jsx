@@ -151,6 +151,19 @@ function buildHistoryData(monthlyReport = {}) {
 		}
 	}
 
+function monthsAgo(n) {
+	const d = new Date()
+	d.setMonth(d.getMonth() - n)
+	return d.toISOString().slice(0, 7)
+}
+
+
+const timeFrameOptions = [
+  { label: "Last 3 Months", value: 3 },
+  { label: "Last 6 Months", value: 6 },
+  { label: "Last 12 Months", value: 12 },
+];
+
 function ReportsPage({ apiBaseUrl }) {
     const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
     const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
@@ -158,6 +171,13 @@ function ReportsPage({ apiBaseUrl }) {
     const [purchseChartData, setPurchaseChartData] = useState(null)
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
+	const [selected, setSelected] = useState(12);
+
+	const handleSelect = (months) => {
+		setSelected(months)
+		setSelectedStartMonth(monthsAgo(months - 1)) // -1 so "3 months" includes the current month
+		setSelectedEndMonth(defaultMonth)
+	}
 
     async function getMonth(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
 		const url = `${apiBaseUrl}/get-report`
@@ -217,6 +237,17 @@ function ReportsPage({ apiBaseUrl }) {
 			<div className='date-range'>
 				<span>To </span>
 				<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+			</div>
+			<div className="timeframe-selector">
+			{timeFrameOptions.map((opt) => (
+				<button
+				key={opt.value}
+				onClick={() => handleSelect(opt.value)}
+				className={selected === opt.value ? "active" : ""}
+				>
+				{opt.label}
+				</button>
+			))}
 			</div>
 		</div>
 
