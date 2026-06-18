@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import Login from './components/Login'
-import LogData from './components/LogData'
-import Account from './components/Account'
-import Report from './components/Reports'
+import { useState, useCallback, useEffect } from 'react'
+import LoginPage from './components/LoginPage'
+import LogDataPage from './components/LogDataPage'
+import AccountPage from './components/AccountPage'
+import ReportsPage from './components/ReportsPage'
 import './App.css'
 
 function App() {
@@ -10,7 +10,6 @@ function App() {
 	const [password, setPassword] = useState('')
 	const [showRegister, setShowRegister] = useState(false)
 	const [email, setEmail] = useState('')
-
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [activeScreen, setActiveScreen] = useState('Reports')
 	const [userData, setUserData] = useState(null)
@@ -70,20 +69,20 @@ function App() {
 				<section className="screen-card">
 					{activeScreen === 'Reports' && (
 						<>							
-							<Report apiBaseUrl={apiBaseUrl}></Report>
+							<ReportsPage apiBaseUrl={apiBaseUrl}></ReportsPage>
 						</>	
                         
 					)}
 
 					{activeScreen === 'Log-Data' && (
 						<div>
-						<LogData apiBaseUrl={apiBaseUrl} />
+						<LogDataPage apiBaseUrl={apiBaseUrl} />
 						</div>
 					)}
 
 					{activeScreen === 'Account' && (
 						<div>
-							<Account
+							<AccountPage
 								username={username} 
 								apiBaseUrl={apiBaseUrl}
 								setIsLoggedIn={setIsLoggedIn}
@@ -99,7 +98,7 @@ function App() {
 
 	return (
 		<>
-			<Login
+			<LoginPage
 				apiBaseUrl={apiBaseUrl}
 				onLoginSuccess={(loggedInUsername) => {
 					setusername(loggedInUsername)

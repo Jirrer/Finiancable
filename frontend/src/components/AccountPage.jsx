@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 
-function Account({ username, apiBaseUrl, setIsLoggedIn, setUsername, setPassword }) {
+function AccountPage({ username, apiBaseUrl, setIsLoggedIn, setUsername, setPassword }) {
     const [userData, setUserData] = useState(null)
 
     useEffect(() => {
@@ -48,4 +48,4 @@ function Account({ username, apiBaseUrl, setIsLoggedIn, setUsername, setPassword
 }
                         
 
-export default Account
+export default AccountPage

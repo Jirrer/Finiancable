@@ -149,7 +149,7 @@ function CSVPreview({ file, onRemove }) {
 	)
 }
 
-function LogData({ apiBaseUrl }) {
+function LogDataPage({ apiBaseUrl }) {
 	const [files, setFiles] = useState([])
 	const [dragging, setDragging] = useState(false)
 	const inputRef = useRef(null)
@@ -332,4 +332,4 @@ function LogData({ apiBaseUrl }) {
 	)
 }
 
-export default LogData
+export default LogDataPage

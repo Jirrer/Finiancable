@@ -152,7 +152,7 @@ function buildHistoryData(monthlyReport = {}) {
 		}
 	}
 
-function Report({ apiBaseUrl }) {
+function ReportsPage({ apiBaseUrl }) {
     const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
     const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
     const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
@@ -315,4 +315,4 @@ function Report({ apiBaseUrl }) {
         )
 }
 
-export default Report
+export default ReportsPage

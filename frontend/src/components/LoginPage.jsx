@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Login({ apiBaseUrl, onLoginSuccess }) {
+function LoginPage({ apiBaseUrl, onLoginSuccess }) {
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [email, setEmail] = useState('')
@@ -178,4 +178,4 @@ function Login({ apiBaseUrl, onLoginSuccess }) {
 	)
 }
 
-export default Login
+export default LoginPage
