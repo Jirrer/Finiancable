@@ -1,5 +1,71 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 
+function EditableTransactionsTable({ transactions = [], onChange }) {
+	// columns = union of keys across all transaction objects
+	const columns = useMemo(() => {
+		const cols = new Set()
+		for (const t of transactions) {
+			if (t && typeof t === 'object' && !Array.isArray(t)) {
+				Object.keys(t).forEach((k) => cols.add(k))
+			}
+		}
+		return Array.from(cols)
+	}, [transactions])
+
+	const handleCellChange = (rowIndex, key, value) => {
+		const copy = transactions.map((r) => (r && typeof r === 'object' ? { ...r } : r))
+		const row = copy[rowIndex]
+		if (row && typeof row === 'object') {
+			// try to preserve types: if original was number, attempt parse
+			const orig = row[key]
+			if (typeof orig === 'number') {
+				const n = Number(value)
+				row[key] = Number.isNaN(n) ? value : n
+			} else {
+				row[key] = value
+			}
+		} else {
+			copy[rowIndex] = value
+		}
+		onChange(copy)
+	}
+
+	if (!transactions || !transactions.length) return <div className="empty-state">No transactions to edit</div>
+
+	return (
+		<div style={{ overflowX: 'auto' }}>
+			<table className="transactions-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						{columns.map((c) => <th key={c}>{c}</th>)}
+					</tr>
+				</thead>
+				<tbody>
+					{transactions.map((t, ri) => (
+						<tr key={ri}>
+							<td style={{ whiteSpace: 'nowrap' }}>{ri + 1}</td>
+							{columns.map((c) => (
+								<td key={c}>
+									{t && typeof t === 'object' && c in t ? (
+										<input
+											value={t[c] ?? ''}
+											onChange={(e) => handleCellChange(ri, c, e.target.value)}
+											style={{ width: 160 }}
+										/>
+									) : (
+										<input value={''} onChange={(e) => handleCellChange(ri, c, e.target.value)} style={{ width: 160 }} />
+									)}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	)
+}
+
 // Helper: format bytes to human readable
 function formatBytes(bytes) {
 	if (!bytes && bytes !== 0) return ''

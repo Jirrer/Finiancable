@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 
-function Account({ username, apiBaseUrl }) {
+function Account({ username, apiBaseUrl, setIsLoggedIn, setUsername, setPassword }) {
     const [userData, setUserData] = useState(null)
 
     useEffect(() => {
@@ -10,7 +10,7 @@ function Account({ username, apiBaseUrl }) {
     async function logOut() {
         await fetch(`${apiBaseUrl}/logout`, { method: 'POST', credentials: 'include' });
         setIsLoggedIn(false);
-        setusername('');
+        setUsername('');
         setPassword('');
     }
 
@@ -37,8 +37,6 @@ function Account({ username, apiBaseUrl }) {
             {username}
             <button onClick={logOut}>Sign Out</button>
         </div>
-
-
             <div className='accountData'>Net Worth: ${Math.round(userData?.NetWorth?.Networth ?? 0).toLocaleString()}</div>
         <div className='accountData'>Salary: ${userData?.Salary?.toLocaleString() ?? '—'}</div>
         <div className='accountData'>
