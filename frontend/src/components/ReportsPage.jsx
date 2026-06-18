@@ -1,95 +1,94 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler } from 'chart.js'
 import { Line, Pie } from 'react-chartjs-2'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler)
 
-
 function aggregateCategoryTotals(monthlyReport = {}) {
-		const months = Object.values(monthlyReport)
-		const purchaseTotals = {}
-		const incomeTotals = {}
+	const months = Object.values(monthlyReport)
+	const purchaseTotals = {}
+	const incomeTotals = {}
 
-		for (const monthData of months) {
-			if (!monthData || typeof monthData !== 'object') continue
+	for (const monthData of months) {
+		if (!monthData || typeof monthData !== 'object') continue
 
-			if (monthData.purchase && typeof monthData.purchase === 'object') {
-				for (const [category, amount] of Object.entries(monthData.purchase)) {
-					purchaseTotals[category] = (purchaseTotals[category] ?? 0) + Number(amount ?? 0)
-				}
-			}
-
-			if (monthData.income && typeof monthData.income === 'object') {
-				for (const [category, amount] of Object.entries(monthData.income)) {
-					incomeTotals[category] = (incomeTotals[category] ?? 0) + Number(amount ?? 0)
-				}
+		if (monthData.purchase && typeof monthData.purchase === 'object') {
+			for (const [category, amount] of Object.entries(monthData.purchase)) {
+				purchaseTotals[category] = (purchaseTotals[category] ?? 0) + Number(amount ?? 0)
 			}
 		}
 
-		return { purchaseTotals, incomeTotals }
+		if (monthData.income && typeof monthData.income === 'object') {
+			for (const [category, amount] of Object.entries(monthData.income)) {
+				incomeTotals[category] = (incomeTotals[category] ?? 0) + Number(amount ?? 0)
+			}
+		}
 	}
+
+	return { purchaseTotals, incomeTotals }
+}
 
 function buildPieData(categoryTotals, colors) {
-		if (!categoryTotals || typeof categoryTotals !== 'object') return null
-		const labels = Object.keys(categoryTotals)
-		if (!labels.length) return null
+	if (!categoryTotals || typeof categoryTotals !== 'object') return null
+	const labels = Object.keys(categoryTotals)
+	if (!labels.length) return null
 
-		const sorted = labels
-			.map((k) => ({ label: k, value: Math.abs(Number(categoryTotals[k] ?? 0)) }))
-			.sort((a, b) => b.value - a.value)
+	const sorted = labels
+		.map((k) => ({ label: k, value: Math.abs(Number(categoryTotals[k] ?? 0)) }))
+		.sort((a, b) => b.value - a.value)
 
-		const sortedLabels = sorted.map((d) => d.label)
-		const sortedValues = sorted.map((d) => d.value)
-		const labeledLabels = sortedLabels.map((k, i) => `${k}: $${sortedValues[i].toLocaleString()}`) // ← add this back
+	const sortedLabels = sorted.map((d) => d.label)
+	const sortedValues = sorted.map((d) => d.value)
+	const labeledLabels = sortedLabels.map((k, i) => `${k}: $${sortedValues[i].toLocaleString()}`) // ← add this back
 
-		return {
-			labels: labeledLabels, // ← use labeledLabels instead of sortedLabels
-			datasets: [{ data: sortedValues, backgroundColor: colors.slice(0, sortedLabels.length), borderColor: '#fff', borderWidth: 1 }],
-		}
+	return {
+		labels: labeledLabels, // ← use labeledLabels instead of sortedLabels
+		datasets: [{ data: sortedValues, backgroundColor: colors.slice(0, sortedLabels.length), borderColor: '#fff', borderWidth: 1 }],
 	}
+}
 
 function buildHistoryData(monthlyReport = {}) {
-		if (!monthlyReport || typeof monthlyReport !== 'object') return null
+	if (!monthlyReport || typeof monthlyReport !== 'object') return null
 
-		const hasCategoryData = (value) => value && typeof value === 'object' && Object.keys(value).length > 0
-		const parseMonthLabel = (label) => {
-			const [firstPart, secondPart] = String(label).split(/[/-]/)
-			if (!firstPart || !secondPart) return { year: 0, month: 0 }
+	const hasCategoryData = (value) => value && typeof value === 'object' && Object.keys(value).length > 0
+	const parseMonthLabel = (label) => {
+		const [firstPart, secondPart] = String(label).split(/[/-]/)
+		if (!firstPart || !secondPart) return { year: 0, month: 0 }
 
-			if (firstPart.length === 4) {
-				return { year: Number(firstPart), month: Number(secondPart) }
-			}
-
-			return { year: Number(secondPart), month: Number(firstPart) }
+		if (firstPart.length === 4) {
+			return { year: Number(firstPart), month: Number(secondPart) }
 		}
 
-		const labels = Object.keys(monthlyReport)
-			.filter((month) => {
-			const monthData = monthlyReport?.[month]
-			if (!monthData || typeof monthData !== 'object') return false
+		return { year: Number(secondPart), month: Number(firstPart) }
+	}
 
-			const hasTransactions =
-				hasCategoryData(monthData.purchase) ||
-				hasCategoryData(monthData.income) ||
-				hasCategoryData(monthData.transfer)
+	const labels = Object.keys(monthlyReport)
+		.filter((month) => {
+		const monthData = monthlyReport?.[month]
+		if (!monthData || typeof monthData !== 'object') return false
 
-			const hasNonZeroTotals =
-				Number(monthData.profit ?? 0) !== 0 ||
-				Number(monthData.gains ?? 0) !== 0 ||
-				Number(monthData.losses ?? 0) !== 0
+		const hasTransactions =
+			hasCategoryData(monthData.purchase) ||
+			hasCategoryData(monthData.income) ||
+			hasCategoryData(monthData.transfer)
 
-			return hasTransactions || hasNonZeroTotals
-			})
-			.sort((left, right) => {
-				const leftDate = parseMonthLabel(left)
-				const rightDate = parseMonthLabel(right)
+		const hasNonZeroTotals =
+			Number(monthData.profit ?? 0) !== 0 ||
+			Number(monthData.gains ?? 0) !== 0 ||
+			Number(monthData.losses ?? 0) !== 0
 
-				if (leftDate.year !== rightDate.year) {
-					return leftDate.year - rightDate.year
-				}
+		return hasTransactions || hasNonZeroTotals
+		})
+		.sort((left, right) => {
+			const leftDate = parseMonthLabel(left)
+			const rightDate = parseMonthLabel(right)
 
-				return leftDate.month - rightDate.month
-			})
+			if (leftDate.year !== rightDate.year) {
+				return leftDate.year - rightDate.year
+			}
+
+			return leftDate.month - rightDate.month
+		})
 
 		if (!labels.length) return null
 
@@ -210,109 +209,109 @@ function ReportsPage({ apiBaseUrl }) {
 
     return (
     <div>
-            <div className='date-range-container'>
-								<div className='date-range'>
-									<span>From </span>
-									<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
-								</div>
-								<div className='date-range'>
-									<span>To </span>
-									<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
-								</div>
-							</div>
+		<div className='date-range-container'>
+			<div className='date-range'>
+				<span>From </span>
+				<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
+			</div>
+			<div className='date-range'>
+				<span>To </span>
+				<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+			</div>
+		</div>
 
-							<div className='reports'>
-								<div className='pie-reports-container'>
-									<div className='pie-report' id='purchase-chart'>
-										<p className="chart-label">Purchases</p>
-										<div className="pie-chart">
-											{purchseChartData ? (
-												<Pie
-													data={purchseChartData}
-													options={{
-														responsive: true,
-														maintainAspectRatio: false,
-														plugins: { legend: 
-															{ position: 'right',
-																labels: {
-																	color: '#FFF',
-																	font: {
-																		size: 14
-																	}
-																}
-															 }
-														},
-													}}
-												/>
-											) : (
-												<div className="empty-state">No purchase data yet.</div>
-											)}
-										</div>
-									</div>
+		<div className='reports'>
+			<div className='pie-reports-container'>
+				<div className='pie-report' id='purchase-chart'>
+					<p className="chart-label">Purchases</p>
+					<div className="pie-chart">
+						{purchseChartData ? (
+							<Pie
+								data={purchseChartData}
+								options={{
+									responsive: true,
+									maintainAspectRatio: false,
+									plugins: { legend: 
+										{ position: 'right',
+											labels: {
+												color: '#FFF',
+												font: {
+													size: 14
+												}
+											}
+											}
+									},
+								}}
+							/>
+						) : (
+							<div className="empty-state">No purchase data yet.</div>
+						)}
+					</div>
+				</div>
 
-									<div className='pie-report' id='purchase-chart'>
-										<p className="chart-label">Income</p>
-										<div className="pie-chart">
-											{incomeChartData ? (
-												<Pie
-													data={incomeChartData}
-													options={{
-														responsive: true,
-														maintainAspectRatio: false,
-														plugins: { legend: 
-															{ position: 'right',
-																labels: {
-																	color: '#FFF',
-																	font: {
-																		size: 14
-																	}
-																}
-															 }
-														},
-													}}
-												/>
-											) : (
-												<div className="empty-state">No income data yet.</div>
-											)}
-										</div>
-									</div>
-								</div>
+				<div className='pie-report' id='purchase-chart'>
+					<p className="chart-label">Income</p>
+					<div className="pie-chart">
+						{incomeChartData ? (
+							<Pie
+								data={incomeChartData}
+								options={{
+									responsive: true,
+									maintainAspectRatio: false,
+									plugins: { legend: 
+										{ position: 'right',
+											labels: {
+												color: '#FFF',
+												font: {
+													size: 14
+												}
+											}
+											}
+									},
+								}}
+							/>
+						) : (
+							<div className="empty-state">No income data yet.</div>
+						)}
+					</div>
+				</div>
+			</div>
 
-								<div className="line-report">
-									<p className="chart-label">Profit History</p>
-									<div className="line-chart">
-										{historyChartData ? (
-											<Line
-												data={historyChartData}
-												options={{
-													responsive: true,
-													maintainAspectRatio: false,
-													scales: {
-														x: {
-															type: 'linear',
-															ticks: {
-																stepSize: 1,
-																callback: (value) => historyChartData?.labelMap?.[value] ?? '',
-															},
-														},
-													},
-													plugins: { legend: { display: false }, 
-													labels: {
-														color: '#FFF',
-														font: {
-															size: 14
-														}
-													} },
-												}}
-											/>
-										) : (
-											<div className="empty-state">No profit history data yet.</div>
-										)}
-									</div>
-								</div>
-							</div>
-                        </div>
-        )
+			<div className="line-report">
+				<p className="chart-label">Profit History</p>
+				<div className="line-chart">
+					{historyChartData ? (
+						<Line
+							data={historyChartData}
+							options={{
+								responsive: true,
+								maintainAspectRatio: false,
+								scales: {
+									x: {
+										type: 'linear',
+										ticks: {
+											stepSize: 1,
+											callback: (value) => historyChartData?.labelMap?.[value] ?? '',
+										},
+									},
+								},
+								plugins: { legend: { display: false }, 
+								labels: {
+									color: '#FFF',
+									font: {
+										size: 14
+									}
+								} },
+							}}
+						/>
+					) : (
+						<div className="empty-state">No profit history data yet.</div>
+					)}
+				</div>
+			</div>
+		</div>
+	</div>
+    )
 }
 
 export default ReportsPage
