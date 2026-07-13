@@ -100,11 +100,21 @@ a {
 }
 
 
-.date-range-container {
-    justify-self: center;
+.selected_range {
     display: flex;
-    gap: 1pc;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     margin-bottom: 10px;
+}
+
+.selected_range:hover {
+    cursor: pointer;
+}
+
+.burger_menu {
+    width: 30px;
+    display: block;
 }
 
 .reports {

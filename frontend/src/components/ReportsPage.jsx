@@ -172,6 +172,7 @@ function ReportsPage({ apiBaseUrl }) {
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
 	const [selected, setSelected] = useState(12);
+	const [selected_range, setSelectedRange] = useState([defaultMonth, defaultMonth])
 
 	const handleSelect = (months) => {
 		setSelected(months)
@@ -229,7 +230,15 @@ function ReportsPage({ apiBaseUrl }) {
 
     return (
     <div>
-		<div className='date-range-container'>
+		<button className='selected_range'>
+			{selected_range[0]} - {selected_range[1]}
+			<img src="public/burger-menu.svg" alt="" className='burger_menu' />
+		</button>
+
+
+
+
+{/* 
 			<div className='date-range'>
 				<span>From </span>
 				<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
@@ -248,8 +257,8 @@ function ReportsPage({ apiBaseUrl }) {
 				{opt.label}
 				</button>
 			))}
-			</div>
-		</div>
+			</div> */}
+		
 
 		<div className='reports'>
 			<div className='pie-reports-container'>
