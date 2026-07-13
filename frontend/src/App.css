@@ -152,6 +152,26 @@ a {
     cursor: pointer;
 }
 
+.timeframe-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.timeframe-selector button {
+    text-align: center;
+    height: 3pc;
+    font-size: xx-large;
+}
+
+.timeframe-selector button:hover {
+    background-color: #6495ED;
+    cursor: pointer;
+}
+
 .date-range input {
     height: 7vh;
     font-size: 5vh;
