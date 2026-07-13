@@ -159,23 +159,43 @@ function monthsAgo(n) {
 
 
 const timeFrameOptions = [
-  { label: "Last 3 Months", value: 3 },
-  { label: "Last 6 Months", value: 6 },
-  { label: "Last 12 Months", value: 12 },
+  { label: "3 Months", value: 3 },
+  { label: "6 Months", value: 6 },
+  { label: "12 Months", value: 12 },
 ];
 
 function ReportsPage({ apiBaseUrl }) {
-    const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
-    const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
-    const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
+    const defaultMonth = (() => {
+		const date = new Date()
+		date.setMonth(date.getMonth() - 1)
+		return date.toISOString().slice(0, 7)
+	})()
+
+    const [selectedStartMonth, setSelectedStartMonth] = useState(
+		(() => {
+			const date = new Date()
+			date.setMonth(date.getMonth() - 3)
+			return date.toISOString().slice(0, 7)
+		})()
+	)
+
+    const [selectedEndMonth, setSelectedEndMonth] = useState(
+		(() => {
+			const date = new Date()
+			date.setMonth(date.getMonth() - 1)
+			return date.toISOString().slice(0, 7)
+		})()
+	)
+
     const [purchseChartData, setPurchaseChartData] = useState(null)
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
 	const [selected, setSelected] = useState(12);
+	const [isOpen, setIsOpen] = useState(false);
 
 	const handleSelect = (months) => {
 		setSelected(months)
-		setSelectedStartMonth(monthsAgo(months - 1)) // -1 so "3 months" includes the current month
+		setSelectedStartMonth(monthsAgo(months)) // -1 so "3 months" includes the current month
 		setSelectedEndMonth(defaultMonth)
 	}
 
@@ -229,27 +249,60 @@ function ReportsPage({ apiBaseUrl }) {
 
     return (
     <div>
-		<div className='date-range-container'>
-			<div className='date-range'>
-				<span>From </span>
-				<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
-			</div>
-			<div className='date-range'>
-				<span>To </span>
-				<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
-			</div>
-			<div className="timeframe-selector">
-			{timeFrameOptions.map((opt) => (
-				<button
-				key={opt.value}
-				onClick={() => handleSelect(opt.value)}
-				className={selected === opt.value ? "active" : ""}
+		<button 
+		className='selected_range'
+		onClick={() => setIsOpen(true)}
+		>
+			{selectedStartMonth} - {selectedEndMonth}
+			<img src="public/burger-menu.svg" alt="" className='burger_menu' />
+		</button>
+
+		{isOpen && (
+			<div
+			style={{
+				position: "fixed",
+				top: 0,
+				left: 0,
+				width: "100%",
+				height: "100%",
+				// background: "rgba(0,0,0,0.5)",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+			}}
+			onClick={() => setIsOpen(false)} // close when clicking outside
+			>
+				<div
+					style={{
+					background: "#808080",
+					padding: "20px",
+					borderRadius: "8px",	
+					}}
+					onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
 				>
-				{opt.label}
-				</button>
-			))}
+					<div className="timeframe-selector">
+					{timeFrameOptions.map((opt) => (
+						<button
+						key={opt.value}
+						onClick={() => handleSelect(opt.value)}
+						className={selected === opt.value ? "active" : ""}
+						>
+						{opt.label}
+						</button>
+					))}
+					</div>
+
+					<div className='date-range'>
+						<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
+					</div>
+
+					<div className='date-range'>
+						<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+					</div>
+
+				</div>
 			</div>
-		</div>
+		)}
 
 		<div className='reports'>
 			<div className='pie-reports-container'>

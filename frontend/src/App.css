@@ -100,11 +100,21 @@ a {
 }
 
 
-.date-range-container {
-    justify-self: center;
+.selected_range {
     display: flex;
-    gap: 1pc;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     margin-bottom: 10px;
+}
+
+.selected_range:hover {
+    cursor: pointer;
+}
+
+.burger_menu {
+    width: 30px;
+    display: block;
 }
 
 .reports {
@@ -138,6 +148,26 @@ a {
 }
 
 .user-information button:hover {
+    background-color: #6495ED;
+    cursor: pointer;
+}
+
+.timeframe-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.timeframe-selector button {
+    text-align: center;
+    height: 3pc;
+    font-size: xx-large;
+}
+
+.timeframe-selector button:hover {
     background-color: #6495ED;
     cursor: pointer;
 }
