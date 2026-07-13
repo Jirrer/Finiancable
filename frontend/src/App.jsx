@@ -40,15 +40,6 @@ function App() {
 
 		return (
 			<main className="app-shell">
-				<header className="top-bar">
-					<div className='user-information'>
-                        <button
-							onClick={() => setActiveScreen('Account')}
-						> <img src="profile-user-account.png" alt="Search"/>
-						</button>
-					</div>
-				</header>
-			
 				<nav className='nav-buttons'>
 					<button
 						type="button"
@@ -57,12 +48,18 @@ function App() {
 					>
 						Reports
 					</button>
+
 					<button
 						type="button"
 						className={`screen-button ${activeScreen === 'Log-Data' ? 'active' : ''}`}
 						onClick={() => setActiveScreen('Log-Data')}
 					>
 						Log Data
+					</button>
+
+					<button className='user-information'
+						onClick={() => setActiveScreen('Account')}
+					> <img src='public/profile-user-account.svg' alt="pfp"/>
 					</button>
 				</nav>
 
