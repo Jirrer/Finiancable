@@ -20,14 +20,21 @@ def test_run(seeded_db):
         with pytest.raises(exceptions.InvalidUser):
             uploadTransaction.run(2, dictData)
 
-
 def test_validate_user(seeded_db):
     with app_module.app.app_context():
-        assert uploadTransaction.validateUser(1) == None
+        assert uploadTransaction.validateUser(1, {}) == None
 
         with pytest.raises(exceptions.InvalidUser):
-            uploadTransaction.validateUser(2)
+            uploadTransaction.validateUser(2, {})
 
+        with pytest.raises(ValueError):
+            uploadTransaction.validateUser("1", {})
+
+def test_run_by_type(seeded_db):
+    assert uploadTransaction.runByType(1, {}) == None
+
+    with pytest.raises(exceptions.BadUploadType):
+        uploadTransaction.runByType(1, '')
 
 def test_run_json(seeded_db):
     dictData = {
@@ -44,7 +51,6 @@ def test_run_json(seeded_db):
 
     assert purchases == 2
     assert transfers == 1
-
 
 def test_get_arrays_by_dict(seeded_db):
     dictData = {

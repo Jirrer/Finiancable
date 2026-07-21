@@ -14,21 +14,26 @@ MODEL_MAP = {
     'transfer': Transfer,
 }
 
-def run(userID, data):
-    validateUser(userID)
+def run(userID: int, data):
 
-    if type(data) == dict: 
-        runJson(userID, data)
-
-    else:
-        raise exceptions.BadUploadType(f'Type ({type(data)}) is not allowed')
+    validateUser(userID, data)
     
-def validateUser(potentialID: int) -> None | exceptions.InvalidUser:
+def validateUser(potentialID: int, data) -> None | exceptions.InvalidUser | ValueError:
+    if type(potentialID) != int:
+        raise ValueError
+    
     if db.session.get(User, potentialID) is None:
         raise exceptions.InvalidUser()
 
+    runByType(potentialID, data)
+
+def runByType(userID: int, data) -> None | exceptions.BadUploadType:
+    match(data):
+        case dict(): runJson(userID, data)
+        case _: raise exceptions.BadUploadType(f'Type ({type(data)}) is not allowed')
+
 def runJson(userID: int, data: dict[dict]):
-    transactionsByGroup = getTransactionsByGroup(data)
+    transactionsByGroup: dict[list[tuple]] = getTransactionsByGroup(data)
 
     for group, transactions in transactionsByGroup.items():
         model = MODEL_MAP[group]
