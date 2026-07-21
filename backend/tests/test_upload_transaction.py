@@ -21,10 +21,12 @@ def test_run(seeded_db):
             uploadTransaction.run(2, dictData)
 
 
-def test_valid_user(seeded_db):
+def test_validate_user(seeded_db):
     with app_module.app.app_context():
-        assert uploadTransaction.validUser(1) == True
-        assert uploadTransaction.validUser(2) == False
+        assert uploadTransaction.validateUser(1) == None
+
+        with pytest.raises(exceptions.InvalidUser):
+            uploadTransaction.validateUser(2)
 
 
 def test_run_json(seeded_db):

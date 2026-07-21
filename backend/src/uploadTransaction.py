@@ -1,11 +1,10 @@
-import sqlite3, os
-
 from dotenv import load_dotenv
 from datetime import date as date_type
 
 import src.exceptions as exceptions
 
 from models import db, Purchase, Transfer, Income, User
+
 
 load_dotenv()
 
@@ -16,8 +15,7 @@ MODEL_MAP = {
 }
 
 def run(userID, data):
-    if not validUser(userID): 
-        raise exceptions.InvalidUser()
+    validateUser(userID)
 
     if type(data) == dict: 
         runJson(userID, data)
@@ -25,8 +23,9 @@ def run(userID, data):
     else:
         raise exceptions.BadUploadType(f'Type ({type(data)}) is not allowed')
     
-def validUser(potentialID: int) -> bool:
-    return db.session.get(User, potentialID) is not None
+def validateUser(potentialID: int) -> None | exceptions.InvalidUser:
+    if db.session.get(User, potentialID) is None:
+        raise exceptions.InvalidUser()
 
 def runJson(userID: int, data: dict[dict]):
     transactionsByGroup = getTransactionsByGroup(data)
