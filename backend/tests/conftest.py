@@ -105,5 +105,5 @@ def mock_get_transactions(monkeypatch):
 @pytest.fixture
 def mock_valid_user(monkeypatch):
     import src.uploadTransaction as ut
-    monkeypatch.setattr(ut, "validateUser", lambda uid, data: True)
+    monkeypatch.setattr(ut, "validateUser", lambda uid: True)
     return True

@@ -6,3 +6,4 @@ class NullDateInput(Exception): pass
 class MissingHeader(Exception): pass
 class NullReturnType(Exception): pass
 class BadReturnType(Exception): pass
+class BadUploadData(Exception): pass
