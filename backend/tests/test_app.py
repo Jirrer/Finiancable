@@ -71,7 +71,7 @@ def test_upload_report(client, mock_valid_user):
                 "value": 10.0,
                 "date": "2024-01-01",
                 "info": "t",
-                "category": "food",
+                "category": "food_drink",
             }
         },
     }

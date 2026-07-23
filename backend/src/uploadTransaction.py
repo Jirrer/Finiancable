@@ -4,6 +4,8 @@ from enum import Enum, auto
 
 import src.exceptions as exceptions
 
+from src.NormalizeData import isValidDate
+from src.getTransactions import TransactionType, PurchaseType, IncomeType, TransferType
 from models import db, Purchase, Transfer, Income, User
 
 load_dotenv()
@@ -48,6 +50,30 @@ def validateData_json(data):
     for transaction in data.values():
         for key in transaction.keys():
             if key not in databse_columns: raise exceptions.BadUploadData
+
+        if type(transaction['value']) is not float:
+            raise exceptions.BadUploadData
+
+        if not isValidDate(transaction['date']):
+            raise exceptions.BadDateInput
+
+        if type(transaction['info']) is not str:
+            raise exceptions.BadUploadData
+
+        match (transaction['group']):
+            case TransactionType.Income.value:
+                if not any(transaction['category'] == c.value for c in IncomeType):
+                    raise exceptions.BadUploadData
+
+            case TransactionType.Purchase.value:
+                if not any(transaction['category'] == c.value for c in PurchaseType):
+                    raise exceptions.BadUploadData
+
+            case TransactionType.Transfer.value:
+                if not any(transaction['category'] == c.value for c in TransferType):
+                    raise exceptions.BadUploadData
+            case _:
+                raise exceptions.BadUploadData 
 
 def runByType(userID: int, data, dataType: DataType) -> None | exceptions.BadUploadType:
     match(dataType):
