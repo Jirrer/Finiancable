@@ -5,6 +5,7 @@ import src.exceptions as exceptions
 import app as app_module
 from models import db, Purchase, Transfer
 
+# To-Do: rename certain variables (like dictData when not its neccessarly a dict)
 
 def test_run(seeded_db):
     dictData = {
