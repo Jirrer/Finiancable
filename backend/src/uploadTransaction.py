@@ -4,15 +4,16 @@ from enum import Enum, auto
 
 import src.exceptions as exceptions
 
+from src.NormalizeData import isValidDate
+from src.getTransactions import TransactionType, PurchaseType, IncomeType, TransferType
 from models import db, Purchase, Transfer, Income, User
 
 load_dotenv()
 
-MODEL_MAP = {
-    'income': Income,
-    'purchase': Purchase,
-    'transfer': Transfer,
-}
+class Models(Enum):
+    INCOME = auto()
+    PURCHASE = auto()
+    TRANSFER = auto()
 
 class DataType(Enum):
     JSON = auto()
@@ -44,11 +45,35 @@ def validateData(data, dataType: DataType) -> None | exceptions.BadUploadData | 
         case _: raise Exception
 
 def validateData_json(data):
-    allowedKeys = ('value', 'date', 'info', 'group', 'category')
+    databse_columns = ('value', 'date', 'info', 'group', 'category') 
 
     for transaction in data.values():
         for key in transaction.keys():
-            if key not in allowedKeys: raise exceptions.BadUploadData
+            if key not in databse_columns: raise exceptions.BadUploadData
+
+        if type(transaction['value']) is not float:
+            raise exceptions.BadUploadData
+
+        if not isValidDate(transaction['date']):
+            raise exceptions.BadDateInput
+
+        if type(transaction['info']) is not str:
+            raise exceptions.BadUploadData
+
+        match (transaction['group']):
+            case TransactionType.Income.value:
+                if not any(transaction['category'] == c.value for c in IncomeType):
+                    raise exceptions.BadUploadData
+
+            case TransactionType.Purchase.value:
+                if not any(transaction['category'] == c.value for c in PurchaseType):
+                    raise exceptions.BadUploadData
+
+            case TransactionType.Transfer.value:
+                if not any(transaction['category'] == c.value for c in TransferType):
+                    raise exceptions.BadUploadData
+            case _:
+                raise exceptions.BadUploadData 
 
 def runByType(userID: int, data, dataType: DataType) -> None | exceptions.BadUploadType:
     match(dataType):
@@ -56,10 +81,13 @@ def runByType(userID: int, data, dataType: DataType) -> None | exceptions.BadUpl
         case _: raise Exception
 
 def runJson(userID: int, data: dict[dict]):
-    transactionsByGroup: dict[list[tuple]] = groupJsonTransactions(data)
+    for transactionType, transactions in groupJsonTransactions(data).items():
+        match (transactionType.upper()):
+            case Models.INCOME._name_: model = Income
+            case Models.PURCHASE._name_: model = Purchase
+            case Models.TRANSFER._name_: model = Transfer
+            case _: raise Exception
 
-    for group, transactions in transactionsByGroup.items():
-        model = MODEL_MAP[group]
         db.session.bulk_insert_mappings(model, [
             {
                 'user_id': userID,
@@ -83,4 +111,5 @@ def groupJsonTransactions(data: dict[dict]) -> dict[list[tuple]]:
             transaction['info'],
             transaction['category']
         ))
+
     return output

@@ -21,8 +21,10 @@ def isValidDate(possibleDate: str) -> bool:
         try:
             datetime.strptime(possibleDate, fmt)
             return True
+        
         except ValueError:
             continue
+        
     return False
 
 US_STATES = {
